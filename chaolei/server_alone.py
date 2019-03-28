@@ -25,6 +25,7 @@ class Server:
         self.server.listen(MAX_CONNECTION)
         self.allow_connection = True
         self.allow_recept = True
+        self.allow_treat =True
 
 
         self.inputs = [self.server]
@@ -77,6 +78,20 @@ class Server:
                 print("Signal STOP received, end sending thread")
                 break
             self.brodcast(usr_input)
+    def start_treating(self):
+        if self.bind_statut:
+            print("start sending thread")
+            self.thread_treating = threading.Thread(target = self.treating)
+            self.thread_treating.start()
+
+    def treating(self):
+        while self.allow_treat:
+            while(not to_do_queue.empty()):
+                data = to_do_queue.get()
+                print(data.decode())
+                to_do_queue.task_done()
+
+
 
 
 def main():
