@@ -11,9 +11,9 @@ class Client:
         self.ipAddress = socket.gethostbyname(hostName)
         self.port = port
         print(f"IP address of the host name {self.hostName} is: {self.ipAddress}")
-        self.client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)    
-        
-        try:    
+        self.client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+
+        try:
             self.client.connect((self.ipAddress,port))
         except:
             print("Unable to connect")
@@ -37,7 +37,6 @@ class Client:
             if "::STOP" in message:
                 print("Signal STOP received, end sending thread")
                 break
-            message = message
             self.client.send(message.encode())
 
     def receiving(self):
@@ -46,13 +45,13 @@ class Client:
             #if f"LFT {self.clientName}" in data:
             if f"LFT {self.clientName}" in data:
                 break
-            
-
-            print(f">>received:{data}")
 
 
+            print(f">>received:{" ".join(data)}")
 
-            
+
+
+
 def main():
     #s = Client("pablo.rauzy.name",4567)
     s = Client("localhost",4567)

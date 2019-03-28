@@ -57,10 +57,10 @@ class Client:
                 break
 
             decoded_data = data.split()
-            print("received decoded_data >>:", decoded_data)
+            print("received decoded_data >>:", " ".join(decoded_data))
 
             if decoded_data[0] == "MSG":
-                print(f">>received:{decoded_data[0:]}")#to do
+                print(">>received:"+" ".join(decoded_data[0:]))#to do
 
             if "cond1" in data:
                 print("cond1 reached")

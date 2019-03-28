@@ -14,12 +14,14 @@ class Server:
         #self.ipAddress = socket.gethostbyname(hostName)
         self.port = port
         self.server = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        self.bind_statut = False
         try:
             self.server.bind((self.hostName , self.port))
         except:
             print("Unable to bind")
             return
         print(f"bind on {self.hostName} {self.port}")
+        self.bind_statut = True
         self.server.listen(MAX_CONNECTION)
         self.allow_connection = True
         self.allow_recept = True
@@ -31,9 +33,10 @@ class Server:
         self.to_do_queue = queue.Queue()
 
     def start_receiving_accept(self):
-        print("start receving and accept thread")
-        self.thread_receiving_accept = threading.Thread(target = self.receiving_accept)
-        self.thread_receiving_accept.start()
+        if self.bind_statut:
+            print("start receving and accept thread")
+            self.thread_receiving_accept = threading.Thread(target = self.receiving_accept)
+            self.thread_receiving_accept.start()
         #self.thread_receiving_accept.join()
     def receiving_accept(self):
         while self.allow_connection or self.allow_recept:
@@ -46,19 +49,41 @@ class Server:
                     conn, cliaddr = s.accept()
                     print(f"connection from {cliaddr}")
                     self.inputs.append(conn)
+                    self.brodcast("new connection")
                 else:
                     data = s.recv(1024)
                     if data:
                         self.to_do_queue.put(data)
 
+    def send_to(self, target_sock, data):
+        target_sock.send(data.encode())
+
+    def brodcast(self, data):
+        for s in self.inputs:
+            if not s is self.server:
+                self.send_to(s, data)
+
+    def start_sending_all(self):
+        if self.bind_statut:
+            print("start sending thread")
+            self.thread_sending = threading.Thread(target = self.sending)
+            self.thread_sending.start()
+
     def sending(self):
-        pass
-    def send(self):
-        
+        sending_lock = True
+        while sending_lock:
+            usr_input = input()
+            if "::STOP" in usr_input:
+                print("Signal STOP received, end sending thread")
+                break
+            self.brodcast(usr_input)
+
+
 def main():
     #s = Client("pablo.rauzy.name",4567)
     _s = Server("localhost",4567)
     _s.start_receiving_accept()
+    _s.start_sending_all()
 
 if __name__ == '__main__':
     main()
