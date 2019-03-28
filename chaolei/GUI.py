@@ -9,8 +9,11 @@ class LoginFrame(tk.Frame):#genere une frame pour le login screen
     def __init__(self, master):
         super().__init__(master)
         self.login_statut = False
+        self.username = ""
+        self.servername = ""
+        self.port = ""
 
-
+        #print("reached")
         self.label_username = tk.Label(self, text="Username")
         self.label_servername = tk.Label(self, text="Server name")
         self.label_port = tk.Label(self, text="Port")
@@ -36,26 +39,22 @@ class LoginFrame(tk.Frame):#genere une frame pour le login screen
 
     def get_statut(self):
     	return self.login_statut
-
     def get_username(self):
-    	return self.entry_username.get()
+    	return self.username
     def get_servername(self):
-    	return self.entry_servername.get()
+    	return self.servername
     def get_port(self):
-    	return self.entry_port.get()
+    	return self.port
 
 
     def _login_btn_clicked(self):
         # print("Clicked")
-        username = self.entry_username.get()
-        servername = self.entry_servername.get()
-        port = self.entry_port.get()
+        self.username = self.entry_username.get()
+        self.servername = self.entry_servername.get()
+        self.port = self.entry_port.get()
+        self.login_statut = True
         # print(username, servername)
-
-        if username == "john" and servername == "servername":
-            tk.messagebox.showinfo("Login info", "Welcome John")
-        else:
-            tk.messagebox.showerror("Login error", "Incorrect username")
+        print("you pressed the button")
 
 def usr_login():
     pass    
@@ -68,20 +67,12 @@ class GUI:
         self.window.geometry("400x600")
         #login step
         loginframe = LoginFrame(self.window)
-        while(loginframe.get_statut() != "ok"):
-        	loginframe.login_statut = input("put")
-        
-        #print("out")
+        	
         self.username = loginframe.get_username()
         self.servername = loginframe.get_servername()
         self.port = loginframe.get_port()
 
-        loginframe.destroy()
-        print("port:",self.username)
-        print("servername:",self.servername)
-        print("port:",self.port)
         self.window.mainloop()
-
 
 class Application:
 	def __init(self):

@@ -17,6 +17,7 @@ class Client:
             self.client.connect((self.ipAddress,port))
         except:
             print("Unable to connect")
+            return
         print(f"Connection on {self.port}")
 
         self.clientName = " "
@@ -31,38 +32,30 @@ class Client:
 
     def sending(self):
         while True:
-            message = input(">>send:")
+            message = input()
+            print(f"sending:{message}")
             if "::STOP" in message:
                 print("Signal STOP received, end sending thread")
                 break
-            message = message + "\n"
+            message = message
             self.client.send(message.encode())
 
     def receiving(self):
         while True:
             data = self.client.recv(1024).decode('utf-8')
+            #if f"LFT {self.clientName}" in data:
             if f"LFT {self.clientName}" in data:
                 break
-            print(f"\n>>received:{data}")
+            
 
-        '''
-        print(f"{self.client.recv(1024).decode('utf-8')}")#WHO
-        while(" " in self.clientName):
-            self.clientName = input("Entrez votre pseudo: ")
-        self.client.send(f"IAM {self.clientName}".encode())
-        print(f"Pseudo choisi:{self.clientName}")
-        print(f"rmsg: {self.client.recv(1024).decode('utf-8')}")
-        print("before")
-        self.client.send(f"MSG {input()}".encode())
-        print("after")
-        print(f"{self.client.recv(1024).decode('utf-8')}")#WHO
-        print("end")
-'''
+            print(f">>received:{data}")
+
+
 
             
 def main():
-    s = Client("pablo.rauzy.name",4567)
-    #s = Client("localhost",4567)
+    #s = Client("pablo.rauzy.name",4567)
+    s = Client("localhost",4567)
 
 
 
