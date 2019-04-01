@@ -4,7 +4,7 @@ import secrets
 
 HAND_SIZE = 4
 WALLET_INIT_AMOUNT = 100
-class Game():
+class Game_data_manager():
     """docstring for ."""
 
     def __init__(self):
@@ -46,7 +46,7 @@ class Game():
 
 
 def main():
-    _g = Game()
+    _g = Game_data_manager()
     print(_g.cards_deck)
     _g.new_player("player1")
     _g.new_player("player2")
