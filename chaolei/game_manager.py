@@ -1,13 +1,58 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
-import socket,select
-import threading
-import time
-import queue
+import secrets
 
-class ClassName():
+HAND_SIZE = 4
+WALLET_INIT_AMOUNT = 100
+class Game():
     """docstring for ."""
 
     def __init__(self):
-        self.Game_
+        self.cards_deck= [ x for x in range(4)]*8 + [-1, -1]
+        self.pile_table = 0
+        self.players_hands = dict()
+        self.players_wallets = dict()
+        self.cards_bin = []
+
+    def reset_pile(self):
+        self.pile_table = 0
+
+    def check_valid_card(self, card):
+        return card in self.cards_deck
+
+    def remove_card_from_deck(self, card):
+        if self.check_valid_card(card):
+            self.cards_deck.remove(card)
+            return True
+        return False
+
+    def new_player(self, player_name):
+        self.players_hands[player_name] = []
+        self.players_wallets[player_name] = WALLET_INIT_AMOUNT
+
+    def modifie_wallets(self, player_name, amount):
+        self.players_wallets[player_name] += amount
+
+    def give_cards_to_all(self):
+        for player,hand in self.players_hands.items():
+            for x in range(HAND_SIZE):
+                choice = secrets.choice(self.cards_deck)
+                self.remove_card_from_deck(choice)
+                hand.append(choice)
+
+
+
+
+
+
+def main():
+    _g = Game()
+    print(_g.cards_deck)
+    _g.new_player("player1")
+    _g.new_player("player2")
+    print(_g.players_hands)
+    _g.give_cards_to_all()
+    print(_g.cards_deck)
+    print(_g.players_hands)
+if __name__ == '__main__':
+    main()
