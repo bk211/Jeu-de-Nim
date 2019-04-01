@@ -50,7 +50,7 @@ class Server:
                     conn, cliaddr = s.accept()
                     print(f"connection from {cliaddr}")
                     self.inputs.append(conn)
-                    self.brodcast("new connection")
+                    self.brodcast(f"new connection from {cliaddr}")
                 else:
                     data = s.recv(1024)
                     if data:
@@ -79,6 +79,7 @@ class Server:
                 print("Signal STOP received, end sending thread")
                 break
             self.brodcast(usr_input)
+
     def start_treating(self):
         if self.bind_statut:
             print("start sending thread")
@@ -89,10 +90,8 @@ class Server:
         while self.allow_treat:
             while(not self.to_do_queue.empty()):
                 decoded_data = self.to_do_queue.get().decode().split()
-                print(">>received"+" ".join(decoded_data))
+                print(">>received :"+" ".join(decoded_data))
                 self.to_do_queue.task_done()
-
-
 
 
 def main():
