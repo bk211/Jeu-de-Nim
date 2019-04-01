@@ -55,6 +55,7 @@ class Server:
                     data = s.recv(1024)
                     if data:
                         self.to_do_queue.put(data)
+                        print(">>data received")
 
     def send_to(self, target_sock, data):
         target_sock.send(data.encode())
@@ -86,10 +87,10 @@ class Server:
 
     def treating(self):
         while self.allow_treat:
-            while(not to_do_queue.empty()):
-                data = to_do_queue.get()
-                print(data.decode())
-                to_do_queue.task_done()
+            while(not self.to_do_queue.empty()):
+                decoded_data = self.to_do_queue.get().decode().split()
+                print(">>received"+" ".join(decoded_data))
+                self.to_do_queue.task_done()
 
 
 
@@ -99,6 +100,6 @@ def main():
     _s = Server("localhost",4567)
     _s.start_receiving_accept()
     _s.start_sending_all()
-
+    _s.start_treating()
 if __name__ == '__main__':
     main()
