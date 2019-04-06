@@ -93,6 +93,13 @@ class Server:
                 print(">>received :"+" ".join(decoded_data))
                 self.to_do_queue.task_done()
 
+class Game_ruler():
+    """docstring for ."""
+
+    def __init__(self, arg):
+        self.arg = arg
+
+
 
 def main():
     #s = Client("pablo.rauzy.name",4567)
