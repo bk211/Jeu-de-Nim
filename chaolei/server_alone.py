@@ -5,8 +5,8 @@ import socket,select
 import threading
 import time
 import queue
-
-MAX_CONNECTION = 10
+from game_manager import Game_data_manager
+MAX_CONNECTION = 4
 
 class Server:
     def __init__(self,hostName,port):
@@ -24,15 +24,17 @@ class Server:
         self.bind_statut = True
         self.server.listen(MAX_CONNECTION)
         self.allow_connection = True
+        self.current_nb_connected = 0
         self.allow_recept = True
         self.allow_treat =True
 
 
         self.inputs = [self.server]
-        self.outputs = []
 
         self.to_do_queue = queue.Queue()
-
+        self.gdm = Game_data_manager()
+        self.players_list = dict()
+        self.spectators_list = dict()
     def start_receiving_accept(self):
         if self.bind_statut:
             print("start receving and accept thread")
@@ -42,7 +44,7 @@ class Server:
     def receiving_accept(self):
         while self.allow_connection or self.allow_recept:
             #print("bk1")
-            rlist, wlist, elist = select.select(self.inputs,self.outputs,[])
+            rlist, wlist, elist = select.select(self.inputs,[],[])
 
             #print("bk2")
             for s in rlist:
@@ -50,12 +52,46 @@ class Server:
                     conn, cliaddr = s.accept()
                     print(f"connection from {cliaddr}")
                     self.inputs.append(conn)
+                    if self.current_nb_connected < MAX_CONNECTION:
+                        self.players_list[conn] = ""
+                        self.inputs.append(conn)
+                        self.send_to(conn,"WHO")
+                    else:
+                        self.spectators_list[conn] = ""
+                        self.inputs.append(conn)
+                        self.send_to(conn,"WHO")
                     self.brodcast(f"new connection from {cliaddr}")
+                    self.current_nb_connected +=1
                 else:
                     data = s.recv(1024)
                     if data:
-                        self.to_do_queue.put(data)
-                        print(">>data received")
+                        if "IAM" in data.decode():
+                            if self.add_to_lists(s, data):
+                                pass
+                        else:
+                            self.to_do_queue.put(data.decode())
+                            print(">>data received")
+    def add_to_lists(self, player_sock, raw_data):
+        data = raw_data.split()
+        if len(data) != 2:# erreur format:IAM PSEUDO
+            self.send_to(player_sock, "ERR ARGV MISMATCH")
+            return False
+        if data[0] == "IAM":#bonne entete
+            if player_sock in self.players_list:
+                if data[1] not in self.players_list.values():#si le pseudo n'est pas pris
+                    self.players_list[player_sock] = data[1]
+                    return True
+                self.send_to(player_sock, "ERR PSEUDO USED")
+                return False
+            else:
+                if data[1] not in self.spectators_list.values():
+                    self.spectators_list[player_sock] = data[1]
+                    return True
+                self.send_to(player_sock, "ERR PSEUDO USED")
+                return False
+        self.send_to(player_sock, "ERR ENTETE")
+        return False#erreur entete
+
 
     def send_to(self, target_sock, data):
         target_sock.send(data.encode())
@@ -82,18 +118,18 @@ class Server:
 
     def start_treating(self):
         if self.bind_statut:
-            print("start sending thread")
+            print("start treating thread")
             self.thread_treating = threading.Thread(target = self.treating)
             self.thread_treating.start()
 
     def treating(self):
         while self.allow_treat:
-            while(not self.to_do_queue.empty()):
-                decoded_data = self.to_do_queue.get().decode().split()
-                print(">>received :"+" ".join(decoded_data))
+            while(not self.to_do_queue.empty()):#obsolete, cat Queue.get() est bloquant par defaut, a changer
+                data = self.to_do_queue.get().split()
+                print(">>received :"+" ".join(data))
                 self.to_do_queue.task_done()
 
-class Game_ruler():
+class Croupier():
     """docstring for ."""
 
     def __init__(self, arg):

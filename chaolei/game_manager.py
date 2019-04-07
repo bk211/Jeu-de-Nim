@@ -20,6 +20,9 @@ class Game_data_manager():
     def update_pile(self, card):
         self.pile_table += card
 
+    def get_pile(self):
+        return self.pile_table
+
     def check_valid_card_from_deck(self, card):
         return card in self.cards_deck
 
