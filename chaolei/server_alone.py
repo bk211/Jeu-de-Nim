@@ -35,6 +35,7 @@ class Server:
         self.gdm = Game_data_manager()
         self.players_list = dict()
         self.spectators_list = dict()
+
     def start_receiving_accept(self):
         if self.bind_statut:
             print("start receving and accept thread")
@@ -54,11 +55,9 @@ class Server:
                     self.inputs.append(conn)
                     if self.current_nb_connected < MAX_CONNECTION:
                         self.players_list[conn] = ""
-                        self.inputs.append(conn)
                         self.send_to(conn,"WHO")
                     else:
                         self.spectators_list[conn] = ""
-                        self.inputs.append(conn)
                         self.send_to(conn,"WHO")
                     self.brodcast(f"new connection from {cliaddr}")
                     self.current_nb_connected +=1
@@ -71,6 +70,7 @@ class Server:
                         else:
                             self.to_do_queue.put(data.decode())
                             print(">>data received")
+
     def add_to_lists(self, player_sock, raw_data):
         data = raw_data.split()
         if len(data) != 2:# erreur format:IAM PSEUDO
@@ -97,9 +97,9 @@ class Server:
         target_sock.send(data.encode())
 
     def brodcast(self, data):
-        for s in self.inputs:
-            if not s is self.server:
-                self.send_to(s, data)
+        for s in self.inputs[1:]:
+        #    if s is not self.server :
+            self.send_to(s, data)
 
     def start_sending_all(self):
         if self.bind_statut:
@@ -114,6 +114,10 @@ class Server:
             if "::STOP" in usr_input:
                 print("Signal STOP received, end sending thread")
                 break
+            if "::ENDALL" in usr_input:
+                self.sending_lock= False
+                for s in self.inputs:
+                    s.close()
             self.brodcast(usr_input)
 
     def start_treating(self):

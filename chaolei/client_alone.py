@@ -49,25 +49,27 @@ class Client:
                 break
             self.send_msg(message)
 
+
+
     def receiving(self):
         while True:
-            data = self.client.recv(1024).decode()
-            if f"LFT {self.clientName}" in data:
-                print("Signal LFT received")
-                break
+            data = self.client.recv(1024)
+            print("recv")
+            if data:
+                data = data.decode()
+                if data[0:3] == "LFT":
+                    print("Signal LFT received")
+                elif data[0:3] == "MSG":
+                    print(">>received message:"+data[4:])#to do
 
-            decoded_data = data.split()
-            print("received decoded_data >>:", " ".join(decoded_data))
+                elif "cond1" == data[0:5]:
+                    print("cond1 reached")
+                    break
 
-            if decoded_data[0] == "MSG":
-                print(">>received:"+" ".join(decoded_data[0:]))#to do
-
-            if "cond1" in data:
-                print("cond1 reached")
-                break
-
-            if "cond2" in data:
-                print("cond2 reached no exit")
+                elif "cond2" == data[0:5]:
+                    print("cond2 reached no exit")
+                else:
+                    print(">>none of swtich meet, here is the raw data "+data)
         print("end receiving thread")
 
 
