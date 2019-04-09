@@ -66,7 +66,10 @@ class Server:
                     if data:
                         if "IAM" in data.decode():
                             if self.add_to_lists(s, data):
-                                pass
+                                print("add new player succ")
+
+
+
                         else:
                             self.to_do_queue.put(data.decode())
                             print(">>data received")
@@ -75,7 +78,7 @@ class Server:
                         self.inputs.remove(s)
 
     def add_to_lists(self, player_sock, raw_data):
-        data = raw_data.split()
+        data = raw_data.decode().split()
         if len(data) != 2:# erreur format:IAM PSEUDO
             self.send_to(player_sock, "ERR ARGV MISMATCH")
             return False
@@ -89,6 +92,7 @@ class Server:
             else:
                 if data[1] not in self.spectators_list.values():
                     self.spectators_list[player_sock] = data[1]
+                    self.send_to(player_sock, "WELCOME!! ")
                     return True
                 self.send_to(player_sock, "ERR PSEUDO USED")
                 return False
@@ -133,13 +137,13 @@ class Server:
         while self.allow_treat:
             while(not self.to_do_queue.empty()):#obsolete, cat Queue.get() est bloquant par defaut, a changer
                 data = self.to_do_queue.get().split()
-                print(">>received :"+" ".join(data))
+                print(">>received :"+" ".join(data))#to do, pushe to the croupier
                 self.to_do_queue.task_done()
 
 class Croupier():
     """docstring for ."""
 
-    def __init__(self, arg):
+    def __init__(self, Q):
         self.arg = arg
 
 

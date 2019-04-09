@@ -4,7 +4,10 @@ import sys
 import socket
 import threading
 import time
+import queue
 
+
+sharedQueue = queue.Queue()
 class Client:
     def __init__(self,clientName,hostName,port):
         self.clientName = clientName
@@ -54,7 +57,6 @@ class Client:
     def receiving(self):
         while True:
             data = self.client.recv(1024)
-            print("recv")
             if data:
                 data = data.decode()
                 if data[0:3] == "LFT":
