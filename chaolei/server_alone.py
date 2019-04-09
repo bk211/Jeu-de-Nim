@@ -70,6 +70,9 @@ class Server:
                         else:
                             self.to_do_queue.put(data.decode())
                             print(">>data received")
+                    else:#socket closing
+                        s.close()
+                        self.inputs.remove(s)
 
     def add_to_lists(self, player_sock, raw_data):
         data = raw_data.split()
