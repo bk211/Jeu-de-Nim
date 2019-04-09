@@ -117,15 +117,25 @@ class Server:
     def sending(self):
         sending_lock = True
         while sending_lock:
-            usr_input = input()
-            if "::STOP" in usr_input:
-                print("Signal STOP received, end sending thread")
-                break
-            if "::ENDALL" in usr_input:
-                self.sending_lock= False
-                for s in self.inputs:
-                    s.close()
-            self.brodcast(usr_input)
+            try:
+                usr_input = input()
+                if "::STOP" in usr_input:
+                    print("Signal STOP received, end sending thread")
+                    break
+                if "::ENDALL" in usr_input:
+                    self.sending_lock= False
+                    for s in self.inputs:
+                        s.close()
+                self.brodcast(usr_input)
+            except KeyboardInterrupt:
+                print("start quiting")
+                self.bind_statut = False
+                self.allow_connection = False
+                self.allow_recept = False
+                self.allow_treat =False
+#               self.inputs #need to be closed
+                self.server.close()
+
 
     def start_treating(self):
         if self.bind_statut:
