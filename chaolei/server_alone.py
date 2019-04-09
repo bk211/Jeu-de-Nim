@@ -4,7 +4,8 @@ import sys
 import socket,select
 import threading
 import time
-import queue
+#import queue
+from multiprocessing import Queue
 from game_manager import Game_data_manager
 MAX_CONNECTION = 4
 
@@ -31,7 +32,7 @@ class Server:
 
         self.inputs = [self.server]
 
-        self.to_do_queue = queue.Queue()
+        self.to_do_queue = Queue()
         self.gdm = Game_data_manager()
         self.players_list = dict()
         self.spectators_list = dict()
@@ -114,28 +115,18 @@ class Server:
             self.thread_sending = threading.Thread(target = self.sending)
             self.thread_sending.start()
 
+
     def sending(self):
         sending_lock = True
         while sending_lock:
-            try:
-                usr_input = input()
-                if "::STOP" in usr_input:
-                    print("Signal STOP received, end sending thread")
-                    break
-                if "::ENDALL" in usr_input:
-                    self.sending_lock= False
-                    for s in self.inputs:
-                        s.close()
-                self.brodcast(usr_input)
-            except KeyboardInterrupt:
-                print("start quiting")
-                self.bind_statut = False
-                self.allow_connection = False
-                self.allow_recept = False
-                self.allow_treat =False
-#               self.inputs #need to be closed
-                self.server.close()
 
+            usr_input = input()
+            if "::STOP" in usr_input:
+                print("Signal STOP received, end sending thread")
+                break
+            elif"::RAGNAROK" in usr_input:
+                print("endjdioawjdiwo")
+            self.brodcast(usr_input)
 
     def start_treating(self):
         if self.bind_statut:
