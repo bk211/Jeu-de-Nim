@@ -24,11 +24,11 @@ class Server:
         print(f"bind on {self.hostName} {self.port}")
         self.bind_statut = True
         self.server.listen(MAX_CONNECTION)
-        self.allow_connection = True
         self.current_nb_connected = 0
+        self.allow_connection = True
         self.allow_recept = True
         self.allow_treat =True
-
+        self.allow_sending = True
 
         self.inputs = [self.server]
 
@@ -52,31 +52,30 @@ class Server:
             for s in rlist:
                 if s is self.server and self.allow_connection:
                     conn, cliaddr = s.accept()
-                    print(f"connection from {cliaddr}")
+                    print("connection from {}".format(cliaddr))
                     self.inputs.append(conn)
                     if self.current_nb_connected < MAX_CONNECTION:
-                        self.players_list[conn] = ""
+                        self.players_list[conn] = "VISITOR"
                         self.send_to(conn,"WHO")
                     else:
-                        self.spectators_list[conn] = ""
+                        self.spectators_list[conn] = "VISITOR"
                         self.send_to(conn,"WHO")
-                    self.brodcast(f"new connection from {cliaddr}")
+                    self.brodcast("new connection from {}".format(cliaddr))
                     self.current_nb_connected +=1
                 else:
                     data = s.recv(1024)
                     if data:
                         if "IAM" in data.decode():
                             if self.add_to_lists(s, data):
-                                print("add new player succ")
-
-
-
+                                print("add new player {}".format(data[4:].decode()))
                         else:
                             self.to_do_queue.put(data.decode())
                             print(">>data received")
                     else:#socket closing
                         s.close()
+                        print("removed socket :{}".format(s))
                         self.inputs.remove(s)
+        print("End receiving_accept thread")
 
     def add_to_lists(self, player_sock, raw_data):
         data = raw_data.decode().split()
@@ -86,8 +85,11 @@ class Server:
         if data[0] == "IAM":#bonne entete
             if player_sock in self.players_list:
                 if data[1] not in self.players_list.values():#si le pseudo n'est pas pris
-                    self.players_list[player_sock] = data[1]
-                    return True
+                    if self.players_list[player_sock] == "VISITOR": #si le pseudo n'est pas set(evite les changement de pseudo)
+                        self.players_list[player_sock] = data[1]
+                        return True
+                    self.send_to(player_sock, "ERR PSEUDO ALEADY SET")
+                    return False
                 self.send_to(player_sock, "ERR PSEUDO USED")
                 return False
             else:
@@ -117,13 +119,12 @@ class Server:
 
 
     def sending(self):
-        sending_lock = True
-        while sending_lock:
+        while self.allow_sending:
 
             usr_input = input()
             if "::STOP" in usr_input:
                 print("Signal STOP received, end sending thread")
-                break
+
             elif"::RAGNAROK" in usr_input:
                 print("endjdioawjdiwo")
             self.brodcast(usr_input)
@@ -138,8 +139,20 @@ class Server:
         while self.allow_treat:
             while(not self.to_do_queue.empty()):#obsolete, cat Queue.get() est bloquant par defaut, a changer
                 data = self.to_do_queue.get().split()
-                print(">>received :"+" ".join(data))#to do, pushe to the croupier
-                self.to_do_queue.task_done()
+                if data[0] == "MSG":
+                    print("arg = MSG, brodcasting to everyone")
+                    self.brodcast(" ".join(data))
+                else:
+                    print(">>received :"+" ".join(data))#to do, pushe to the croupier
+
+    def close(self):
+        self.allow_receiving = False
+        self.allow_connection = False
+        self.allow_sending = False
+        self.allow_treat = False
+        self.server.close()
+        print("Program end engaged, waiting for running threads to close")
+
 
 class Croupier():
     """docstring for ."""

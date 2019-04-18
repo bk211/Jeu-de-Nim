@@ -18,7 +18,7 @@ class LoginFrame(Frame):
         self.label_username.grid(row=0, sticky=E)
         self.label_servername.grid(row=1, sticky=E)
         self.label_port.grid(row=2, sticky=E)
-        
+
         self.entry_username.grid(row=0, column=1)
         self.entry_servername.grid(row=1, column=1)
         self.entry_port.grid(row=2, column=1)

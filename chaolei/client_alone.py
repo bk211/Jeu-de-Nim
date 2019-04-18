@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 import sys
 import socket
-import threading
+from multiprocessing import Queue
 import time
+import threading
 import queue
 
 
-sharedQueue = queue.Queue()
+sharedQueue = Queue()
 class Client:
     def __init__(self,clientName,hostName,port):
         self.clientName = clientName
@@ -25,7 +26,8 @@ class Client:
             return
         print(f"Connection on {self.port}")
         self.connect_statut = True
-
+        self.allow_sending = True
+        self.allow_receiving = True
 
     def close(self):
         self.client.close()
@@ -44,38 +46,42 @@ class Client:
         self.client.send(msg.encode())
 
     def sending(self):
-        while True:
+        while self.allow_sending:
             message = input()
             print(f"sending:{message}")
             if "::STOP" in message:
                 print("Signal STOP received, end sending thread")
+                self.close()
                 break
             self.send_msg(message)
 
 
 
     def receiving(self):
-        while True:
+        while self.allow_receiving:
             data = self.client.recv(1024)
             if data:
-                data = data.decode()
-                if data[0:3] == "LFT":
+                data = data.decode().split()
+                if data[0] == "LFT":
                     print("Signal LFT received")
-                elif data[0:3] == "MSG":
-                    print(">>received message:"+data[4:])#to do
+                elif data[0] == "MSG":
+                    print(">>received message from {} : {}".format(data[1], " ".join(data[2:])))#to do
 
-                elif "cond1" == data[0:5]:
+                elif "cond1" == data[0]:
                     print("cond1 reached")
                     break
 
-                elif "cond2" == data[0:5]:
+                elif "cond2" == data[0]:
                     print("cond2 reached no exit")
                 else:
-                    print(">>none of swtich meet, here is the raw data "+data)
-        print("end receiving thread")
+                    print(">>none of swtich meet, here is the raw data :"+" ".join(data))
+        print("End receiving thread")
 
-
-
+    def close(self):
+        self.allow_sending = False
+        self.allow_receiving = False
+        self.client.close()
+        print("Program end engaged, waiting for receiving thread to close")
 def main():
     #s = Client("pablo.rauzy.name",4567)
     _s = Client("bk","localhost",4567)
