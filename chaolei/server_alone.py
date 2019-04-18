@@ -7,7 +7,10 @@ import time
 #import queue
 from multiprocessing import Queue
 from game_manager import Game_data_manager
+from croupier import Croupier
 MAX_CONNECTION = 4
+NB_PLAYER = 1#4
+
 
 class Server:
     def __init__(self,hostName,port):
@@ -25,10 +28,12 @@ class Server:
         self.bind_statut = True
         self.server.listen(MAX_CONNECTION)
         self.current_nb_connected = 0
+        self.current_nb_players = 0
         self.allow_connection = True
         self.allow_recept = True
         self.allow_treat =True
         self.allow_sending = True
+        self.croupier = None
 
         self.inputs = [self.server]
 
@@ -54,20 +59,25 @@ class Server:
                     conn, cliaddr = s.accept()
                     print("connection from {}".format(cliaddr))
                     self.inputs.append(conn)
+
                     if self.current_nb_connected < MAX_CONNECTION:
                         self.players_list[conn] = "VISITOR"
                         self.send_to(conn,"WHO")
                     else:
                         self.spectators_list[conn] = "VISITOR"
                         self.send_to(conn,"WHO")
+
                     self.brodcast("new connection from {}".format(cliaddr))
                     self.current_nb_connected +=1
+
                 else:
                     data = s.recv(1024)
                     if data:
                         if "IAM" in data.decode():
                             if self.add_to_lists(s, data):
                                 print("add new player {}".format(data[4:].decode()))
+                                self.current_nb_players +=1
+                                self.croupier = Croupier()
                         else:
                             self.to_do_queue.put(data.decode())
                             print(">>data received")
@@ -154,11 +164,6 @@ class Server:
         print("Program end engaged, waiting for running threads to close")
 
 
-class Croupier():
-    """docstring for ."""
-
-    def __init__(self, Q):
-        self.arg = arg
 
 
 
