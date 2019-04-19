@@ -8,7 +8,7 @@ class Game_data_manager():
     """docstring for ."""
 
     def __init__(self):
-        self.cards_deck= [ x for x in range(4)]*8 + [-1, -1]
+        self.cards_deck= [ x for x in range(4)]*6 + [-1, -1]
         self.pile_table = 0
         self.players_hands = dict()
         self.players_wallets = dict()
