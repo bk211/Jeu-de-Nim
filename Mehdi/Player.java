@@ -38,7 +38,10 @@ public class Player {
      
      public void displayHand() {
           System.out.println(name + "\'s hand (" + hand.getSize() + "):");
+          System.out.println("BK1");
           hand.display();
+          System.out.println("BK2");
+
           System.out.println();
      }
 

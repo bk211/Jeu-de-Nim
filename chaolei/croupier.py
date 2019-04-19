@@ -16,6 +16,7 @@ class Croupier():
             print("{} IS {}".format(sock.getsockname(),name))
 
         self.received_queue =Queue()
+        self.current_game_phase = 0
 
     def push_to_rqueue(self, content):
         self.received_queue.put(content)

@@ -29,19 +29,28 @@ public class Hand {
           return cards.size();
      }
 
-     public void display() {
+     public void display() {          
+          System.out.println("BK1.1");
+
           String[][] tempArray = new String[13][4];
           int k = 1;
+          System.out.println("BK1.3");
 
           // Populate tempArray with cards
           for (int i = 0; i < 6; ++i) {
                for (int j = 0; j < 4; j++) {
                     if (cards.get(k) != null) {
+                         System.out.println("BK2.1");
+
                          tempArray[i][j] = cards.get(k).toString();
                          k++;
+                         System.out.println("BK2.2");
+
                     }
                }
           }
+          
+          System.out.println("BK1.4");
 
           for (int i = 0; i < 6; ++i) {
                if (tempArray[i][0] != null) {
