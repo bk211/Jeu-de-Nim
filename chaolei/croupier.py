@@ -22,6 +22,7 @@ class Croupier():
         self.received_queue =Queue()
         self.current_game_phase = 0
         self.current_player_turn = 0
+        self.start_treating()
 
     def get_current_player_sock(self):#retourne la socket du joueur qui a la main
         return self.select_player(self.current_player_turn)
@@ -38,8 +39,9 @@ class Croupier():
     def treating(self):
         while self.current_game_phase == 0:
             while self.received_queue.empty():
-                data = self.received_queue.get().split()
-                if data[0] == "STR":
+                data = self.received_queue.get()
+                print(data)
+                if data == "STR":
                     self.current_game_phase = 1
 
         while self.current_game_phase == 1:

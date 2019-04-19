@@ -82,15 +82,16 @@ class Server:
                                 if self.current_nb_players == NB_PLAYER and self.game_statut is False :
                                     self.croupier = Croupier(self.players_dict)
                                     self.game_statut = True
-                        if "STR" in data:#mecanisme de controle qui assure que c'est le bon socket qui envoie une reponse
-                            if s is croupier.get_current_player_sock():
+
+                        elif "STR" in data:#mecanisme de controle qui assure que c'est le bon socket qui envoie une reponse
+                            if s is self.croupier.get_current_player_sock():
                                 self.to_do_queue.put(data)
                             else:
                                 send_to(s,"MSG Croupier Merci de respecter l'ordre de jeu")
 
                         else:
+                            print(">>data pushed")
                             self.to_do_queue.put(data)
-                            print(">>data received")
                     else:#socket closing
                         s.close()
                         print("removed socket :{}".format(s))
@@ -109,6 +110,7 @@ class Server:
                 if data[1] not in self.players_dict.values():#si le pseudo n'est pas pris
                     if self.players_dict[player_sock] == "VISITOR": #si le pseudo n'est pas set(evite les changement de pseudo)
                         self.players_dict[player_sock] = data[1]
+                        send_to(player_sock, "MSG SYS Welcome")
                         return True
                     send_to(player_sock, "ERR PSEUDO ALEADY SET")
                     return False
@@ -165,7 +167,7 @@ class Server:
                     print("arg = MSG or ANN, brodcasting to everyone")
                     self.brodcast(data)
                 else:
-                    print(">>received :"+data)#to do, pushe to the croupier
+                    #print(">>received :"+data)#to do, pushe to the croupier
                     if self.game_statut is True:
                         print("pushed to the croupier")
                         self.croupier.push_to_rqueue(data)
