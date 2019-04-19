@@ -42,7 +42,10 @@ public class Hand {
                     if (cards.get(k) != null) {
                          System.out.println("BK2.1");
 
-                         tempArray[i][j] = cards.get(k).toString();
+                         tempArray[i][j] = cards.get(k).toString();                         
+
+                         System.out.println(tempArray[i][j]);
+
                          k++;
                          System.out.println("BK2.2");
 
