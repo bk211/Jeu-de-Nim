@@ -43,10 +43,12 @@ class Croupier():
                 print(data)
                 if data == "STR":
                     self.current_game_phase = 1
-
+                    print("value changed")
+        print("here")
         while self.current_game_phase == 1:
             print("YOU FCKING DID IT IDIOT")
             break
+        print("actually working")
 
 
 
