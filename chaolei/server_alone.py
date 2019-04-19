@@ -39,8 +39,8 @@ class Server:
 
         self.to_do_queue = Queue()
         self.gdm = Game_data_manager()
-        self.players_list = OrderedDict()
-        self.spectators_list = OrderedDict()
+        self.players_dict = OrderedDict()
+        self.spectators_dict = OrderedDict()
 
     def start_receiving_accept(self):
         if self.bind_statut:
@@ -61,10 +61,10 @@ class Server:
                     self.inputs.append(conn)
 
                     if self.current_nb_connected < MAX_CONNECTION:
-                        self.players_list[conn] = "VISITOR"
+                        self.players_dict[conn] = "VISITOR"
                         send_to(conn,"WHO")
                     else:
-                        self.spectators_list[conn] = "VISITOR"
+                        self.spectators_dict[conn] = "VISITOR"
                         send_to(conn,"WHO")
 
                     self.brodcast("new connection from {}".format(cliaddr))
@@ -80,7 +80,7 @@ class Server:
                                 self.current_nb_players +=1
                                 self.brodcast("ARV {}".format(data[4:]))
                                 if self.current_nb_players == NB_PLAYER and self.game_statut is False :
-                                    self.croupier = Croupier(self.players_list)
+                                    self.croupier = Croupier(self.players_dict)
                                     self.game_statut = True
                         if "STR" in data:#mecanisme de controle qui assure que c'est le bon socket qui envoie une reponse
                             if s is croupier.get_current_player_sock():
@@ -95,6 +95,8 @@ class Server:
                         s.close()
                         print("removed socket :{}".format(s))
                         self.inputs.remove(s)
+                        if s in self.players_dict:
+                            self.players_dict.pop(s)
         print("End receiving_accept thread")
 
     def add_to_lists(self, player_sock, raw_data):
@@ -103,18 +105,18 @@ class Server:
             send_to(player_sock, "ERR ARGV MISMATCH")
             return False
         if data[0] == "IAM":#bonne entete
-            if player_sock in self.players_list:
-                if data[1] not in self.players_list.values():#si le pseudo n'est pas pris
-                    if self.players_list[player_sock] == "VISITOR": #si le pseudo n'est pas set(evite les changement de pseudo)
-                        self.players_list[player_sock] = data[1]
+            if player_sock in self.players_dict:
+                if data[1] not in self.players_dict.values():#si le pseudo n'est pas pris
+                    if self.players_dict[player_sock] == "VISITOR": #si le pseudo n'est pas set(evite les changement de pseudo)
+                        self.players_dict[player_sock] = data[1]
                         return True
                     send_to(player_sock, "ERR PSEUDO ALEADY SET")
                     return False
                 send_to(player_sock, "ERR PSEUDO USED")
                 return False
             else:
-                if data[1] not in self.spectators_list.values():
-                    self.spectators_list[player_sock] = data[1]
+                if data[1] not in self.spectators_dict.values():
+                    self.spectators_dict[player_sock] = data[1]
                     send_to(player_sock, "WELCOME!! ")
                     return True
                 send_to(player_sock, "ERR PSEUDO USED")
