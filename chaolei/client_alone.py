@@ -65,8 +65,9 @@ class Client:
                 if data[0] == "LFT":
                     print("Signal LFT received")
                 elif data[0] == "MSG":
-                    print(data)
                     print(">>received message from {} : {}".format(data[1], " ".join(data[2:])))#to do
+                elif data[0] == "ARV":
+                    print(">>New player has joined {}".format(join(data[1])))#to do
 
                 elif "cond1" == data[0]:
                     print("cond1 reached")
