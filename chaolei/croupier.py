@@ -13,7 +13,12 @@ class Croupier():
         self.players = players
         print("initialization complete, croupier rdy")
         for sock, name in self.players.items():
-            print("{} IS {}".format(sock,name))
+            print("{} IS {}".format(sock.getsockname(),name))
+
+        self.received_queue =Queue()
+
+    def push_to_rqueue(self, content):
+        self.received_queue.put(content)
 
 def main():
     pass

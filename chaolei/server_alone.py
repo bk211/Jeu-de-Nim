@@ -9,7 +9,7 @@ from multiprocessing import Queue
 from game_manager import Game_data_manager
 from croupier import Croupier
 MAX_CONNECTION = 4
-NB_PLAYER = 1#4
+NB_PLAYER = 2#4
 
 
 class Server:
@@ -34,6 +34,7 @@ class Server:
         self.allow_treat =True
         self.allow_sending = True
         self.croupier = None
+        self.game_statut = False
 
         self.inputs = [self.server]
 
@@ -72,14 +73,17 @@ class Server:
 
                 else:
                     data = s.recv(1024)
+                    data = data.decode()
                     if data:
-                        if "IAM" in data.decode():
+                        if "IAM" in data:
                             if self.add_to_lists(s, data):
-                                print("add new player {}".format(data[4:].decode()))
+                                print("add new player {}".format(data[4:]))
                                 self.current_nb_players +=1
-                                self.croupier = Croupier()
+                                if self.current_nb_players == NB_PLAYER and self.game_statut is False :
+                                    self.croupier = Croupier(self.players_list)
+                                    self.game_statut = True
                         else:
-                            self.to_do_queue.put(data.decode())
+                            self.to_do_queue.put(data)
                             print(">>data received")
                     else:#socket closing
                         s.close()
@@ -88,7 +92,7 @@ class Server:
         print("End receiving_accept thread")
 
     def add_to_lists(self, player_sock, raw_data):
-        data = raw_data.decode().split()
+        data = raw_data.split()
         if len(data) != 2:# erreur format:IAM PSEUDO
             self.send_to(player_sock, "ERR ARGV MISMATCH")
             return False
@@ -134,6 +138,8 @@ class Server:
             usr_input = input()
             if "::STOP" in usr_input:
                 print("Signal STOP received, end sending thread")
+                self.close()
+                break
 
             elif"::RAGNAROK" in usr_input:
                 print("endjdioawjdiwo")
@@ -148,13 +154,16 @@ class Server:
     def treating(self):
         while self.allow_treat:
             while(not self.to_do_queue.empty()):#obsolete, cat Queue.get() est bloquant par defaut, a changer
-                data = self.to_do_queue.get().split()
-                if data[0] == "MSG":
+                data = self.to_do_queue.get()
+                if data[:3] == "MSG":
                     print("arg = MSG, brodcasting to everyone")
                     self.brodcast(" ".join(data))
                 else:
                     print(">>received :"+" ".join(data))#to do, pushe to the croupier
-
+                    if self.game_statut is True:
+                        print("pushed to the croupier")
+                        self.croupier.push_to_rqueue(data)
+        print("End treating thread")
     def close(self):
         self.allow_receiving = False
         self.allow_connection = False
