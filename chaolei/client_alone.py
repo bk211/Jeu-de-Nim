@@ -65,6 +65,7 @@ class Client:
                 if data[0] == "LFT":
                     print("Signal LFT received")
                 elif data[0] == "MSG":
+                    print(data)
                     print(">>received message from {} : {}".format(data[1], " ".join(data[2:])))#to do
 
                 elif "cond1" == data[0]:
@@ -74,7 +75,7 @@ class Client:
                 elif "cond2" == data[0]:
                     print("cond2 reached no exit")
                 else:
-                    print(">>none of swtich meet, here is the raw data :"+" ".join(data))
+                    print(">>none of swtich meet, here is the raw data : "," ".join(data))
         print("End receiving thread")
 
     def close(self):

@@ -79,6 +79,7 @@ class Server:
                             if self.add_to_lists(s, data):
                                 print("add new player {}".format(data[4:]))
                                 self.current_nb_players +=1
+                                self.brodcast("ARV {}".format(data[4:]))
                                 if self.current_nb_players == NB_PLAYER and self.game_statut is False :
                                     self.croupier = Croupier(self.players_list)
                                     self.game_statut = True
@@ -157,9 +158,9 @@ class Server:
                 data = self.to_do_queue.get()
                 if data[:3] == "MSG":
                     print("arg = MSG, brodcasting to everyone")
-                    self.brodcast(" ".join(data))
+                    self.brodcast("MSG {}".format(data[3:]))
                 else:
-                    print(">>received :"+" ".join(data))#to do, pushe to the croupier
+                    print(">>received :"+data)#to do, pushe to the croupier
                     if self.game_statut is True:
                         print("pushed to the croupier")
                         self.croupier.push_to_rqueue(data)
