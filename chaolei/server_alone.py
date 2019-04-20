@@ -38,7 +38,6 @@ class Server:
         self.inputs = [self.server]
 
         self.to_do_queue = Queue()
-        self.gdm = Game_data_manager()
         self.players_dict = OrderedDict()
         self.spectators_dict = OrderedDict()
 

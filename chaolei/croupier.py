@@ -7,6 +7,7 @@ import time
 from collections import OrderedDict
 from global_settings_and_functions import NB_PLAYER, send_to
 #import queue
+from game_manager import Game_data_manager
 from multiprocessing import Queue
 class Croupier():
     """docstring for ."""
@@ -22,6 +23,7 @@ class Croupier():
         self.received_queue =Queue()
         self.current_game_phase = 0
         self.current_player_turn = 0
+        self.gdm = Game_data_manager()
         self.start_treating()
 
     def get_current_player_sock(self):#retourne la socket du joueur qui a la main
@@ -38,17 +40,17 @@ class Croupier():
 
     def treating(self):
         while self.current_game_phase == 0:
-            if not self.received_queue.empty():
-                data = self.received_queue.get()
-                print(data)
-                if data == "STR":
-                    self.current_game_phase = 1
-                    print("value changed")
-                else:
-                    send_to(self.select_player(0), "MSG Croupier En attente de votre signal de lancement")
+            #if not self.received_queue.empty():
+            data = self.received_queue.get()
+            print(data)
+            if data == "STR":
+                self.current_game_phase = 1
+                print("value changed")
+            else:
+                send_to(self.select_player(0), "MSG Croupier En attente de votre signal de lancement")
 
 
-        print("here")
+        print("Start phase")
         while self.current_game_phase == 1:
             print("YOU FCKING DID IT IDIOT")
             break
