@@ -52,11 +52,20 @@ class Croupier():
 
 
         print("Start phase")
-        while self.current_game_phase == 1:
-            print("YOU FCKING DID IT IDIOT")
-            break
-        print("actually working")
+        self.gdm.deal_cards_to_all()
+        self.send_hand_to_all()
+        #while self.current_game_phase == 1:
+        #    pass
 
+    def send_hand_to_player_sock(self, player_sock):
+        player_hand = self.gdm.get_player_hand(self.players[player_sock])
+        player_hand = " ".join(map(str, player_hand))
+        if player_hand != "":
+            send_to(player_sock , "GET "+player_hand)
+
+    def send_hand_to_all(self):
+        for player_sock in self.players:
+            self.send_hand_to_player_sock(player_sock)
 
 
     def select_player(self, number):

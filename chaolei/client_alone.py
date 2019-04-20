@@ -28,7 +28,8 @@ class Client:
         self.connect_statut = True
         self.allow_sending = True
         self.allow_receiving = True
-
+        self.player_name =""
+        self.plauyer_hand = []
     def close(self):
         self.client.close()
 
@@ -69,10 +70,10 @@ class Client:
                 elif data[0] == "ARV":
                     print(">>New player has joined {}".format(data[1]))#to do
 
-                elif "cond1" == data[0]:
-                    print("cond1 reached")
-                    break
-
+                elif data[0] == "GET":
+                    print(">>Voici votre main : {}".format(" ".join(data[1:])))
+                    self.player_hand = map(int, data[1:]))
+)
                 elif "cond2" == data[0]:
                     print("cond2 reached no exit")
                 else:

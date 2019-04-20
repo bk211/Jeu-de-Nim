@@ -45,6 +45,9 @@ class Game_data_manager():
             return True
         return False
 
+    def get_player_hand(self, player):
+        return self.players_hands[player]
+
     def add_new_player(self, player_name):
         self.players_hands[player_name] = []
         self.players_wallets[player_name] = WALLET_INIT_AMOUNT
@@ -73,7 +76,6 @@ def main():
     _g.add_new_player("player1")
     _g.add_new_player("player2")
     print(_g.players_hands)
-    _g.give_cards_to_all()
     print(_g.cards_deck)
     print(_g.players_hands)
 if __name__ == '__main__':
