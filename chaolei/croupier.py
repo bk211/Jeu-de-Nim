@@ -67,6 +67,9 @@ class Croupier():
         for player_sock in self.players:
             self.send_hand_to_player_sock(player_sock)
 
+    def ask_input_to_player_sock(self,player_sock):
+        current_wallet = self.gdm.get_player_wallet(self.players[player_sock])
+        send_to(player_sock, "REQ PUT {}".format(current_wallet))
 
     def select_player(self, number):
         x = 0

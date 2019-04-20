@@ -72,8 +72,7 @@ class Client:
 
                 elif data[0] == "GET":
                     print(">>Voici votre main : {}".format(" ".join(data[1:])))
-                    self.player_hand = map(int, data[1:]))
-)
+                    self.player_hand = map(int, data[1:])
                 elif "cond2" == data[0]:
                     print("cond2 reached no exit")
                 else:

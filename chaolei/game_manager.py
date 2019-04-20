@@ -52,7 +52,10 @@ class Game_data_manager():
         self.players_hands[player_name] = []
         self.players_wallets[player_name] = WALLET_INIT_AMOUNT
 
-    def modifie_wallets(self, player_name, amount):
+    def get_player_wallet(self, player):
+        return self.players_wallets[player]
+
+    def modifie_wallet(self, player_name, amount):
         self.players_wallets[player_name] += amount
 
     def deal_cards_to_all(self):
