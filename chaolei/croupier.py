@@ -38,12 +38,16 @@ class Croupier():
 
     def treating(self):
         while self.current_game_phase == 0:
-            if self.received_queue.empty():
+            if not self.received_queue.empty():
                 data = self.received_queue.get()
                 print(data)
                 if data == "STR":
                     self.current_game_phase = 1
                     print("value changed")
+                else:
+                    send_to(self.select_player(0), "MSG Croupier En attente de votre signal de lancement")
+
+
         print("here")
         while self.current_game_phase == 1:
             print("YOU FCKING DID IT IDIOT")
