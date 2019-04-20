@@ -161,7 +161,7 @@ class Server:
 
     def treating(self):
         while self.allow_treat:
-            while not self.to_do_queue.empty():
+            if not self.to_do_queue.empty():
                 data = self.to_do_queue.get()
                 if data[:3] == "MSG" or data[:3]=="ANN":
                     print("arg = MSG or ANN, brodcasting to everyone")

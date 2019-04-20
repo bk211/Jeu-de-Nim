@@ -38,7 +38,7 @@ class Croupier():
 
     def treating(self):
         while self.current_game_phase == 0:
-            while self.received_queue.empty():
+            if self.received_queue.empty():
                 data = self.received_queue.get()
                 print(data)
                 if data == "STR":
