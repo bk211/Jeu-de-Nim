@@ -7,7 +7,6 @@ import time
 from collections import OrderedDict
 #import queue
 from multiprocessing import Queue
-from game_manager import Game_data_manager
 from croupier import Croupier
 from global_settings_and_functions import send_to ,MAX_CONNECTION, NB_PLAYER
 

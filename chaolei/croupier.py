@@ -14,16 +14,17 @@ class Croupier():
 
     def __init__(self, players):
         self.players = players
+        self.gdm = Game_data_manager()
         print("initialization complete, croupier rdy")
         for sock, name in self.players.items():
             print("{} IS {}".format(sock.getsockname(),name))
+            self.gdm.add_new_player(name)
             send_to(sock, "MSG Croupier Bienvenue, la table est prête")
         send_to(self.select_player(0), "MSG Croupier En attente de votre signal de lancement")
 
         self.received_queue =Queue()
         self.current_game_phase = 0
         self.current_player_turn = 0
-        self.gdm = Game_data_manager()
         self.start_treating()
 
     def get_current_player_sock(self):#retourne la socket du joueur qui a la main

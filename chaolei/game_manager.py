@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import secrets
-
-HAND_SIZE = 4
-WALLET_INIT_AMOUNT = 100
+from global_settings_and_functions import HAND_SIZE, WALLET_INIT_AMOUNT
 class Game_data_manager():
     """docstring for ."""
 
@@ -54,15 +52,18 @@ class Game_data_manager():
     def modifie_wallets(self, player_name, amount):
         self.players_wallets[player_name] += amount
 
-    def give_cards_to_all(self):
+    def deal_cards_to_all(self):
         for player,hand in self.players_hands.items():
-            for x in range(HAND_SIZE):
-                choice = secrets.choice(self.cards_deck)
-                self.remove_card_from_deck(choice)
-                hand.append(choice)
+            if self.players_wallets[player] > 0:
+                for x in range(HAND_SIZE):
+                    choice = secrets.choice(self.cards_deck)
+                    self.remove_card_from_deck(choice)
+                    hand.append(choice)
 
-
-
+    def deal_card_to_player(self, player):
+        choice = secrets.choice(self.cards_deck)
+        self.remove_card_from_deck(choice)
+        self.players_hands[player].append(choice)
 
 
 
