@@ -81,9 +81,9 @@ class Server:
                                     self.croupier = Croupier(self.players_dict)
                                     self.game_statut = True
 
-                        elif "STR" in data:#mecanisme de controle qui assure que c'est le bon socket qui envoie une reponse
+                        elif "STR" in data or "PUT" in data :#mecanisme de controle qui assure que c'est le bon socket qui envoie une reponse
                             if s is self.croupier.get_current_player_sock():
-                                self.to_do_queue.put(data)
+                                self.croupier.push_to_rqueue(data)
                             else:
                                 send_to(s,"MSG Croupier Merci de respecter l'ordre de jeu")
 
