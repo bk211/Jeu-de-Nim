@@ -3,7 +3,7 @@
 import sys
 import socket,select
 import threading
-import time
+import time, os
 from collections import OrderedDict
 from global_settings_and_functions import NB_PLAYER, send_to
 #import queue
@@ -131,7 +131,7 @@ class Croupier():
                 if self.gdm.get_player_statut(player):# 1 or 2
                     played_a_card = False
                     while not played_a_card:
-                        self.brodcast("MSG Croupier c'est au joueur {} de miser".format(self.get_player_name(player)))
+                        self.brodcast("MSG Croupier c'est au joueur {} de jouer une carte".format(self.get_player_name(player)))
                         self.ask_input_to_player_sock(self.conv_pnumber_to_psock(player), "PLY", " ")#demande au joueur de jouer une carte
                         player_rep = self.received_queue.get()#recupere sa reponse
                         player_rep = player_rep.split()
@@ -165,7 +165,7 @@ class Croupier():
                         lose = self.current_entry_fee
 
                     self.brodcast("ANN LOS {} {}".format(self.get_player_name(player), lose))
-                    self.gdm.modifie_wallet(player, lose)
+                    self.gdm.modifie_wallet(player, -lose)
                 else:
                     if chip_on_table > self.current_entry_fee:
                         win = chip_on_table

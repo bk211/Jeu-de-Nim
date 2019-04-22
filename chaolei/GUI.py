@@ -130,7 +130,7 @@ class GUI:
 
         self.current_request = "None"
 
-        self.treating = False
+        self.allow_treating = False
 
         self.start_treat()
         self.window.mainloop()
@@ -158,7 +158,7 @@ class GUI:
 
 
     def start_treat(self):
-        self.treating = True
+        self.allow_treating = True
         thread_treat = threading.Thread(target =self.treating)
         thread_treat.start()
 
@@ -174,7 +174,7 @@ class GUI:
         self.bottom_button.config(text=self.current_request,command = self.reply_to_req)
 
     def treating(self):
-        while self.treating:
+        while self.allow_treating:
             if self.loginframe.get_statut():
                 global my_client
                 data = my_client.get_event()
@@ -187,7 +187,7 @@ class GUI:
                     self.push_to_mbox("{} : {}".format(data[1], " ".join(data[2:])))
                 elif data[0] == "BYE":
                     self.push_to_mbox("{} : {}".format("SYS","Deconnection avec le serveur"))
-                    self.treating = False
+                    
 
                 elif data[0] == "ANN":
                     if data[1] == "PUT":
