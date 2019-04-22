@@ -75,6 +75,9 @@ class Client:
                 elif data[0] == "ANN":
                     if data[1] == "PUT":
                         print("Le joueur {} a mise {}".format(data[2],data[3]))
+                    if data[1] == "PLY":
+                        print("Le joueur {} a joué {}".format(data[2],data[3]))
+
 
                 elif data[0] == "ARV":
                     print(">>New player has joined {}".format(data[1]))#to do
@@ -85,6 +88,8 @@ class Client:
                 elif data[0] == "REQ":
                     if data[1] == "PUT":
                         print("Entrez votre mise, vous disposez de {} jetons".format(data[2]))
+                    if data[1] == "PLY":
+                        print("Merci de jouer une carte")
 
                 elif "cond2" == data[0]:
                     print("cond2 reached no exit")

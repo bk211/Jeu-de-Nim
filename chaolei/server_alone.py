@@ -70,10 +70,8 @@ class Server:
                     self.current_nb_connected +=1
 
                 else:
-                    try:
-                        data = s.recv(1024)
-                    except:
-                        pass
+
+                    data = s.recv(1024)
                     data = data.decode()
                     if data:
                         if data[:3] == "IAM" :
@@ -89,7 +87,7 @@ class Server:
                             print("arg = MSG or ANN, brodcasting to everyone")
                             self.brodcast(data)
 
-                        elif data[:3] == "STR" or data[:3] == "PUT" or data[:3] =="PLY":#mecanisme de controle qui assure que c'est le bon socket qui envoie une reponse
+                        elif data[:3] in ["STR", "PUT", "PLY"]:#mecanisme de controle qui assure que c'est le bon socket qui envoie une reponse
                             if s is self.croupier.get_current_player_sock():
                                 self.croupier.push_to_rqueue(data)
                             else:
@@ -163,25 +161,6 @@ class Server:
                 print("endjdioawjdiwo")
             self.brodcast(usr_input)
 
-    def start_treating(self):
-        if self.bind_statut:
-            print("start treating thread")
-            self.thread_treating = threading.Thread(target = self.treating)
-            self.thread_treating.start()
-
-    def treating(self):
-        while self.allow_treat:
-            if not self.to_do_queue.empty():
-                data = self.to_do_queue.get()
-                if data[:3] == "MSG" or data[:3]=="ANN":
-                    print("arg = MSG or ANN, brodcasting to everyone")
-                    self.brodcast(data)
-                else:
-                    #print(">>received :"+data)#to do, pushe to the croupier
-                    if self.game_statut is True:
-                        print("pushed to the croupier")
-                        self.croupier.push_to_rqueue(data)
-        print("End treating thread")
     def close(self):
         self.allow_receiving = False
         self.allow_connection = False

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import secrets
-from global_settings_and_functions import HAND_SIZE, WALLET_INIT_AMOUNT
+from global_settings_and_functions import HAND_SIZE, WALLET_INIT_AMOUNT, PILE_MAX
 class Game_data_manager():
     """docstring for ."""
 
@@ -14,6 +14,15 @@ class Game_data_manager():
         self.players_statut = []
         self.players_chip_on_table =[]
         self.cards_bin = []
+        self.last_player = 0
+
+    def check_loser(self):
+        return self.get_pile() > PILE_MAX
+
+    def find_loser(self):
+        return self.last_player
+
+
     def check_player_bet_done(self,player_number, entry_fee):
         if entry_fee ==0:
             return False
@@ -61,12 +70,8 @@ class Game_data_manager():
     def remove_card_from_hand(self, player_number, card):
         if self.check_valid_card_from_hand(player_number, card):
             self.cards_bin.append(self.players_hands[player_number].pop(card))
-            return True
-        return False
-
-    def play_hand(self, player_number, card):
-        if self.remove_card_from_hand(player_number, card):
             self.update_pile(card)
+            self.last_player = player_number
             return True
         return False
 

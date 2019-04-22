@@ -67,19 +67,16 @@ class Croupier():
     def start_bet_phase(self):
         requiered_entry_fee = 0
         while not self.gdm.check_bet_phase_done(requiered_entry_fee):
-            print(self.gdm.check_bet_phase_done(requiered_entry_fee))
-            print(self.gdm.players_statut,self.gdm.players_wallets,self.gdm.players_chip_on_table)
-
             for player in range(NB_PLAYER):#itere sur toutes les joueurs
                 while not self.gdm.check_player_bet_done(player, requiered_entry_fee):#Tant que ce joueur n'a pas fini son mise
-                    self.ask_input_to_player_sock(self.conv_pnumber_to_psock(player))#demande de miser
+                    player_wallet = self.gdm.get_player_wallet(player) #check son portefeuille
+                    self.ask_input_to_player_sock(self.conv_pnumber_to_psock(player),"PUT", player_wallet)#demande de miser
+
 
                     player_rep = self.received_queue.get()#recupere sa reponse
                     player_rep = player_rep.split()
                     if player_rep[0] == "PUT":#si le joueur mise
                         player_input = int(player_rep[1]) #reconverti sa mise en int
-                        player_wallet = self.gdm.get_player_wallet(player) #check son portefeuille
-                        print("Wallet",player_wallet)
 
                         if player_wallet <=  0 or player_input == 0:#s'il n'a pas de jeton
                             self.gdm.set_player_statut(player, 0)# dehors
@@ -112,7 +109,40 @@ class Croupier():
                 self.current_player_turn = (self.current_player_turn +1)% NB_PLAYER
 
     def start_game_phase(self):
+        print("STR")
+        while not self.gdm.check_loser():
+            for player in range(NB_PLAYER):
+                print("enter loop")
+                if self.gdm.check_loser():
+                    print("break condition")
+                    break
+                if self.gdm.get_player_statut(player):# 1 or 2
+                    played_a_card = False
+                    while not played_a_card:
 
+                        self.ask_input_to_player_sock(self.conv_pnumber_to_psock(player), "PLY", " ")#demande au joueur de jouer une carte
+                        print("sent")
+                        player_rep = self.received_queue.get()#recupere sa reponse
+                        player_rep = player_rep.split()
+                        print("Debugline_>>",player_rep)
+                        if player_rep[0] == "PLY":
+                            player_input = int(player_rep[1]) #reconverti sa mise en int
+                            if self.gdm.remove_card_from_hand(player, player_input):#carte valide et joue
+                                self.brodcast("ANN PLY {} {}".format(self.get_player_name(player), player_input))
+
+                                played_a_card =True
+                                print("first")
+                            else:
+                                print("second")
+                                send_to(self.conv_pnumber_to_psock(player), "MSG Croupier Merci de joueur une carte valide")
+                        else:
+                            print("third")
+                            send_to(self.conv_pnumber_to_psock(player), "MSG Croupier Merci de respecter les format")
+                    self.current_player_turn = (self.current_player_turn +1)% NB_PLAYER
+
+
+
+        print("loser is",self.gdm.find_loser())
 
     def send_hand_to_player_sock(self, player_sock):
         player_hand = self.gdm.get_player_hand(self.conv_psock_to_pnumber(player_sock))
@@ -124,9 +154,8 @@ class Croupier():
         for player_sock in self.players:
             self.send_hand_to_player_sock(player_sock)
 
-    def ask_input_to_player_sock(self,player_sock):
-        current_wallet = self.gdm.get_player_wallet(self.conv_psock_to_pnumber(player_sock))
-        send_to(player_sock, "REQ PUT {}".format(current_wallet))
+    def ask_input_to_player_sock(self,player_sock, arg1, arg2):
+        send_to(player_sock, "REQ {} {}".format(arg1, arg2))
 
     def conv_pnumber_to_psock(self, pnumber):
         x = 0
