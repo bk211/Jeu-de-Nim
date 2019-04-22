@@ -52,6 +52,7 @@ class Client:
             print(f"sending:{message}")
             if "::STOP" in message:
                 print("Signal STOP received, end sending thread")
+                self.send_msg("BYE")
                 self.close()
                 break
             self.send_msg(message)
@@ -63,16 +64,28 @@ class Client:
             data = self.client.recv(1024)
             if data:
                 data = data.decode().split()
+
                 if data[0] == "LFT":
                     print("Signal LFT received")
+                if data[0] == "WHO":
+                    print("merci de vous identifier")
                 elif data[0] == "MSG":
-                    print(">>received message from {} : {}".format(data[1], " ".join(data[2:])))#to do
+                    print(">>received message from {} : {}".format(data[1], " ".join(data[2:])))
+
+                elif data[0] == "ANN":
+                    if data[1] == "PUT":
+                        print("Le joueur {} a mise {}".format(data[2],data[3]))
+
                 elif data[0] == "ARV":
                     print(">>New player has joined {}".format(data[1]))#to do
 
                 elif data[0] == "GET":
                     print(">>Voici votre main : {}".format(" ".join(data[1:])))
                     self.player_hand = map(int, data[1:])
+                elif data[0] == "REQ":
+                    if data[1] == "PUT":
+                        print("Entrez votre mise, vous disposez de {} jetons".format(data[2]))
+
                 elif "cond2" == data[0]:
                     print("cond2 reached no exit")
                 else:

@@ -17,7 +17,7 @@ class Game_data_manager():
     def check_player_bet_done(self,player_number, entry_fee):
         if entry_fee ==0:
             return False
-        if self.players_statut[player_number] == 1 and self.players_chip_on_table[x] < entry_fee:
+        if self.players_statut[player_number] == 1 and self.players_chip_on_table[player_number] < entry_fee:
             return False
         return True
 
@@ -77,8 +77,8 @@ class Game_data_manager():
         self.players_hands.append([])
         self.players_wallets.append(WALLET_INIT_AMOUNT)
         self.player_count +=1
-        self.players_statut.append([])
-        self.players_chip_on_table.append([])
+        self.players_statut.append(1)
+        self.players_chip_on_table.append(0)
 
     def get_player_wallet(self, player_number):
         return self.players_wallets[player_number]

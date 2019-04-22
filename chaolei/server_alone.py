@@ -48,9 +48,10 @@ class Server:
         #self.thread_receiving_accept.join()
     def receiving_accept(self):
         while self.allow_connection or self.allow_recept:
-            #print("bk1")
-            rlist, wlist, elist = select.select(self.inputs,[],[])
-
+            try:
+                rlist, wlist, elist = select.select(self.inputs,[],[])
+            except:
+                pass
             #print("bk2")
             for s in rlist:
                 if s is self.server and self.allow_connection:
@@ -65,14 +66,14 @@ class Server:
                         self.spectators_dict[conn] = "VISITOR"
                         send_to(conn,"WHO")
 
-                    self.brodcast("new connection from {}".format(cliaddr))
+                    #self.brodcast("new connection from {}".format(cliaddr))
                     self.current_nb_connected +=1
 
                 else:
                     data = s.recv(1024)
                     data = data.decode()
                     if data:
-                        if "IAM" in data:
+                        if "IAM" == data[:3]:
                             if self.add_to_lists(s, data):
                                 print("add new player {}".format(data[4:]))
                                 self.current_nb_players +=1
@@ -81,11 +82,15 @@ class Server:
                                     self.croupier = Croupier(self.players_dict)
                                     self.game_statut = True
 
-                        elif "STR" in data or "PUT" in data :#mecanisme de controle qui assure que c'est le bon socket qui envoie une reponse
+                        elif "STR" == data[:3] or "PUT" == data[:3] :#mecanisme de controle qui assure que c'est le bon socket qui envoie une reponse
                             if s is self.croupier.get_current_player_sock():
                                 self.croupier.push_to_rqueue(data)
                             else:
                                 send_to(s,"MSG Croupier Merci de respecter l'ordre de jeu")
+
+                        elif "BYE" == data:
+                            self.brodcast("LFT {}".format(self.players_dict[s]))
+                            s.close()
 
                         else:
                             print(">>data pushed")

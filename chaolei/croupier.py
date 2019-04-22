@@ -28,6 +28,9 @@ class Croupier():
         self.players_statut = [1 for x in range(NB_PLAYER)]
         self.start_treating()
 
+    def get_player_name(self, player_number):
+        return self.players[self.conv_pnumber_to_psock(player_number)]
+
     def get_current_player_sock(self):#retourne la socket du joueur qui a la main
         return self.conv_pnumber_to_psock(self.current_player_turn)
 
@@ -47,7 +50,6 @@ class Croupier():
             print(data)
             if data == "STR":
                 self.current_game_phase = 1
-                print("value changed")
             else:
                 send_to(self.conv_pnumber_to_psock(0), "MSG Croupier En attente de votre signal de lancement")
 
@@ -56,55 +58,63 @@ class Croupier():
         self.send_hand_to_all()
         self.brodcast("MSG Croupier Les cartes sont distribuées, merci de miser")
 
-        while self.current_game_phase == 1:
-            self.start_bet_phase()
-            break
+        self.start_bet_phase()
 
         print("reached the end")
 
     def start_bet_phase(self):
-        current_player_number = 0
-        requiered_entry_fee =0
-        print("reached")
+        requiered_entry_fee = 0
         while not self.gdm.check_bet_phase_done(requiered_entry_fee):
+            print("KKKKK")
+            print(self.gdm.check_bet_phase_done(requiered_entry_fee))
+            print(self.gdm.players_statut,self.gdm.players_wallets,self.gdm.players_chip_on_table)
 
-            current_player_number = current_player_number % NB_PLAYER
-            current_statut = self.gdm.get_player_statut(current_player_number)
-            print("bk1")
-            if not self.gdm.check_player_bet_done(current_player_number, requiered_entry_fee):
-            #si le joueur est engagé dans la partie, s'il n'est pas en all in, si ce qu'il a misé est inférieur à entrée necessaire
-                print("bk2")
-                self.ask_input_to_player_sock(self.conv_pnumber_to_psock(current_player_number))#demande de miser
-                print("bk3")
+            print("KKKK")
+            for player in range(NB_PLAYER):#itere sur toutes les joueurs
+                while not self.gdm.check_player_bet_done(player, requiered_entry_fee):#Tant que ce joueur n'a pas fini son mise
+                    self.ask_input_to_player_sock(self.conv_pnumber_to_psock(player))#demande de miser
+                    print("bk3")
+                    print("<<",self.gdm.check_player_bet_done(player, requiered_entry_fee))
+                    print("--",player,self.gdm.players_statut,self.gdm.players_chip_on_table)
+                    print(">>")
+                    player_rep = self.received_queue.get()#recupere sa reponse
+                    player_rep = player_rep.split()
+                    print(">>debug_line: ",player_rep)
+                    if player_rep[0] == "PUT":#si le joueur mise
+                        player_input = int(player_rep[1]) #reconverti sa mise en int
+                        player_wallet = self.gdm.get_player_wallet(player) #check son portefeuille
+                        print("Wallet",player_wallet)
 
-                player_rep = self.received_queue.get()#recupere sa reponse
-                player_rep = player_rep.split()
-                print(">>debug_line: ",player_rep)
-                if player_rep[0] == "PUT":#si le joueur mise
-                    player_input = int(player_rep[1]) #reconverti sa mise en int
-                    player_wallet = self.gdm.get_player_wallet(current_player_number) #check son portefeuille
+                        if player_wallet <=  0 or player_input == 0:#s'il n'a pas de jeton
+                            self.gdm.set_player_statut(player, 0)# dehors
+                            self.brodcast("ANN PUT {} {}".format(self.get_player_name(player), player_wallet))
 
-                    if player_wallet <=  0 :#s'il n'a pas de jeton
-                        self.gdm.set_player_statut(current_player_number, 0)# dehors
+                        elif player_wallet < player_input:
+                            send_to(self.conv_pnumber_to_psock(player), "MSG Croupier Vous n'avez pas assez de jetons")
 
-                    elif player_input >= requiered_entry_fee:# s'il mise plus ou égal que l'entrée necessaire
-                        if player_wallet <= requiered_entry_fee:#s'il n'a pas assez, il s'agit d'un all in
-                            self.gdm.set_player_statut(current_player_number, 2) #son statut est update en 2 (all in)
+                        elif player_input < requiered_entry_fee:# s'il mise moins que l'entrée necessaire
+                            if player_wallet > player_input:
+                                send_to(self.conv_pnumber_to_psock(player), "MSG Croupier Vous devez miser un montant valide")
+
+                            else:
+                                self.gdm.set_player_statut(player, 2) #son statut est update en 2 (all in)
+                                self.gdm.set_player_chip(player, player_wallet)
+                                self.brodcast("ANN PUT {} {}".format(self.get_player_name(player), player_wallet))
+
                         else:#sinon, il en a assez pour miser
                             requiered_entry_fee = player_input #on update l'entry fee
-                        self.gdm.set_player_chip(current_player_number, player_wallet)# dans les 2 cas, on pose les jetons sur la table
+                            self.gdm.set_player_chip(player, player_input)
+                            self.brodcast("ANN PUT {} {}".format(self.get_player_name(player), player_input))
 
-                    else:#il n'a pas assez, il s'agit d'un all in
-                        self.gdm.set_player_statut(current_player_number, 2)
-                        self.gdm.set_player_chip(current_player_number, player_wallet)
 
-                    current_player_number +=1 #on passe au joueur suivant
+                    elif player_rep[0] == "FLD":#il se couche
+                        self.gdm.set_player_statut(player, 0)# dehors
+                        self.brodcast("ANN FLD {}".format(self.get_player_name(player)))
 
-                elif player_rep[0] == "FLD":#il se couche
-                    self.gdm.set_player_statut(current_player_number, 0)# dehors
-                    current_player_number +=1 #on passe au joueur suivant
-                else:
-                    send_to(self.conv_pnumber_to_psock(current_player_number), "MSG Croupier Merci de respecter les format")
+                    else:
+                        send_to(self.conv_pnumber_to_psock(player), "MSG Croupier Merci de respecter les format")
+                self.current_player_turn = (self.current_player_turn +1)% NB_PLAYER
+
 
     def send_hand_to_player_sock(self, player_sock):
         player_hand = self.gdm.get_player_hand(self.conv_psock_to_pnumber(player_sock))
@@ -117,9 +127,7 @@ class Croupier():
             self.send_hand_to_player_sock(player_sock)
 
     def ask_input_to_player_sock(self,player_sock):
-        print("bk2.2")
         current_wallet = self.gdm.get_player_wallet(self.conv_psock_to_pnumber(player_sock))
-        print("bk4")
         send_to(player_sock, "REQ PUT {}".format(current_wallet))
 
     def conv_pnumber_to_psock(self, pnumber):
