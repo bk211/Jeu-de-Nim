@@ -70,10 +70,13 @@ class Server:
                     self.current_nb_connected +=1
 
                 else:
-                    data = s.recv(1024)
+                    try:
+                        data = s.recv(1024)
+                    except:
+                        pass
                     data = data.decode()
                     if data:
-                        if "IAM" == data[:3]:
+                        if data[:3] == "IAM" :
                             if self.add_to_lists(s, data):
                                 print("add new player {}".format(data[4:]))
                                 self.current_nb_players +=1
@@ -82,7 +85,11 @@ class Server:
                                     self.croupier = Croupier(self.players_dict)
                                     self.game_statut = True
 
-                        elif "STR" == data[:3] or "PUT" == data[:3] :#mecanisme de controle qui assure que c'est le bon socket qui envoie une reponse
+                        elif data[:3] == "MSG" or data[:3]=="ANN":
+                            print("arg = MSG or ANN, brodcasting to everyone")
+                            self.brodcast(data)
+
+                        elif data[:3] == "STR" or data[:3] == "PUT" or data[:3] =="PLY":#mecanisme de controle qui assure que c'est le bon socket qui envoie une reponse
                             if s is self.croupier.get_current_player_sock():
                                 self.croupier.push_to_rqueue(data)
                             else:
@@ -93,8 +100,8 @@ class Server:
                             s.close()
 
                         else:
-                            print(">>data pushed")
-                            self.to_do_queue.put(data)
+                            print(">>data received :")
+                            print(data)
                     else:#socket closing
                         s.close()
                         print("removed socket :{}".format(s))
@@ -192,6 +199,6 @@ def main():
     _s = Server("localhost",4567)
     _s.start_receiving_accept()
     _s.start_sending_all()
-    _s.start_treating()
+
 if __name__ == '__main__':
     main()
