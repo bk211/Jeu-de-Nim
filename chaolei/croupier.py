@@ -109,10 +109,8 @@ class Croupier():
                 self.current_player_turn = (self.current_player_turn +1)% NB_PLAYER
 
     def start_game_phase(self):
-        print("STR")
         while not self.gdm.check_loser():
             for player in range(NB_PLAYER):
-                print("enter loop")
                 if self.gdm.check_loser():
                     print("break condition")
                     break
@@ -121,28 +119,23 @@ class Croupier():
                     while not played_a_card:
 
                         self.ask_input_to_player_sock(self.conv_pnumber_to_psock(player), "PLY", " ")#demande au joueur de jouer une carte
-                        print("sent")
                         player_rep = self.received_queue.get()#recupere sa reponse
                         player_rep = player_rep.split()
-                        print("Debugline_>>",player_rep)
                         if player_rep[0] == "PLY":
                             player_input = int(player_rep[1]) #reconverti sa mise en int
                             if self.gdm.remove_card_from_hand(player, player_input):#carte valide et joue
                                 self.brodcast("ANN PLY {} {}".format(self.get_player_name(player), player_input))
-
+                                self.brodcast("MSG Croupier la pile vaut maintenant {}".format(self.gdm.get_pile()))
                                 played_a_card =True
-                                print("first")
                             else:
-                                print("second")
                                 send_to(self.conv_pnumber_to_psock(player), "MSG Croupier Merci de joueur une carte valide")
                         else:
-                            print("third")
                             send_to(self.conv_pnumber_to_psock(player), "MSG Croupier Merci de respecter les format")
                     self.current_player_turn = (self.current_player_turn +1)% NB_PLAYER
 
 
 
-        print("loser is",self.gdm.find_loser())
+        print("loser is",self.get_player_name(self.gdm.find_loser()))
 
     def send_hand_to_player_sock(self, player_sock):
         player_hand = self.gdm.get_player_hand(self.conv_psock_to_pnumber(player_sock))

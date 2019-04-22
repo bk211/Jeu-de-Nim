@@ -16,6 +16,7 @@ class Game_data_manager():
         self.cards_bin = []
         self.last_player = 0
 
+
     def check_loser(self):
         return self.get_pile() > PILE_MAX
 
@@ -69,7 +70,9 @@ class Game_data_manager():
 
     def remove_card_from_hand(self, player_number, card):
         if self.check_valid_card_from_hand(player_number, card):
-            self.cards_bin.append(self.players_hands[player_number].pop(card))
+
+            self.cards_bin.append(card)
+            self.players_hands[player_number].remove(card)
             self.update_pile(card)
             self.last_player = player_number
             return True
@@ -94,10 +97,14 @@ class Game_data_manager():
             return True
         return False
 
+    def reshuffle(self):
+        self.cards_deck= [ x for x in range(4)]*6 + [-1, -1]
 
     def deal_cards_to_all(self):
+        self.reshuffle()
+        self.player_hands = [ [] for x in range(self.player_count)]
         for player in range(self.player_count):
-            if self.players_wallets[player]>0:
+            if self.players_wallets[player]>0 and self.players_statut[player]:
                 for x in range(HAND_SIZE):
                     choice = secrets.choice(self.cards_deck)
                     self.remove_card_from_deck(choice)

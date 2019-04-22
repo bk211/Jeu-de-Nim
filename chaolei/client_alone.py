@@ -74,9 +74,9 @@ class Client:
 
                 elif data[0] == "ANN":
                     if data[1] == "PUT":
-                        print("Le joueur {} a mise {}".format(data[2],data[3]))
+                        print("Le joueur {} a mise {} ".format(data[2],data[3]))
                     if data[1] == "PLY":
-                        print("Le joueur {} a joué {}".format(data[2],data[3]))
+                        print("Le joueur {} a joué {} ".format(data[2],data[3]))
 
 
                 elif data[0] == "ARV":
