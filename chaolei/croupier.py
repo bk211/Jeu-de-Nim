@@ -45,13 +45,15 @@ class Croupier():
     def treating(self):
         self.wait_for_STR_signal()
 
-        self.gdm.deal_cards_to_all()
-        self.send_hand_to_all()
-        self.brodcast("MSG Croupier Les cartes sont distribuées, merci de miser")
+        while(True):#while self.check_winner():
+            self.gdm.deal_cards_to_all()
+            self.send_hand_to_all()
+            self.brodcast("MSG Croupier Les cartes sont distribuées, merci de miser")
 
-        self.start_bet_phase()
+            self.start_bet_phase()
+            self.start_game_phase()
+            print("reached the end loop")
 
-        print("reached the end")
     def wait_for_STR_signal(self):
         while True:
             #if not self.received_queue.empty():print(data)
@@ -62,26 +64,18 @@ class Croupier():
             else:
                 send_to(self.conv_pnumber_to_psock(0), "MSG Croupier En attente de votre signal de lancement")
 
-
-
     def start_bet_phase(self):
         requiered_entry_fee = 0
         while not self.gdm.check_bet_phase_done(requiered_entry_fee):
-            print("KKKKK")
             print(self.gdm.check_bet_phase_done(requiered_entry_fee))
             print(self.gdm.players_statut,self.gdm.players_wallets,self.gdm.players_chip_on_table)
 
-            print("KKKK")
             for player in range(NB_PLAYER):#itere sur toutes les joueurs
                 while not self.gdm.check_player_bet_done(player, requiered_entry_fee):#Tant que ce joueur n'a pas fini son mise
                     self.ask_input_to_player_sock(self.conv_pnumber_to_psock(player))#demande de miser
-                    print("bk3")
-                    print("<<",self.gdm.check_player_bet_done(player, requiered_entry_fee))
-                    print("--",player,self.gdm.players_statut,self.gdm.players_chip_on_table)
-                    print(">>")
+
                     player_rep = self.received_queue.get()#recupere sa reponse
                     player_rep = player_rep.split()
-                    print(">>debug_line: ",player_rep)
                     if player_rep[0] == "PUT":#si le joueur mise
                         player_input = int(player_rep[1]) #reconverti sa mise en int
                         player_wallet = self.gdm.get_player_wallet(player) #check son portefeuille
@@ -116,6 +110,8 @@ class Croupier():
                     else:
                         send_to(self.conv_pnumber_to_psock(player), "MSG Croupier Merci de respecter les format")
                 self.current_player_turn = (self.current_player_turn +1)% NB_PLAYER
+
+    def start_game_phase(self):
 
 
     def send_hand_to_player_sock(self, player_sock):
