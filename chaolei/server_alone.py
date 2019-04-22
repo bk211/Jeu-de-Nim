@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
+import os
 import socket,select
 import threading
 import time
@@ -51,7 +51,7 @@ class Server:
             try:
                 rlist, wlist, elist = select.select(self.inputs,[],[])
             except:
-                pass
+                continue
             #print("bk2")
             for s in rlist:
                 if s is self.server and self.allow_connection:
@@ -70,8 +70,10 @@ class Server:
                     self.current_nb_connected +=1
 
                 else:
-
-                    data = s.recv(1024)
+                    try:
+                        data = s.recv(1024)
+                    except:
+                        continue
                     data = data.decode()
                     if data:
                         if data[:3] == "IAM" :
@@ -80,7 +82,7 @@ class Server:
                                 self.current_nb_players +=1
                                 self.brodcast("ARV {}".format(data[4:]))
                                 if self.current_nb_players == NB_PLAYER and self.game_statut is False :
-                                    self.croupier = Croupier(self.players_dict)
+                                    self.croupier = Croupier(self.players_dict, self.server)
                                     self.game_statut = True
 
                         elif data[:3] == "MSG" or data[:3]=="ANN":
@@ -93,19 +95,27 @@ class Server:
                             else:
                                 send_to(s,"MSG Croupier Merci de respecter l'ordre de jeu")
 
-                        elif "BYE" == data:
-                            self.brodcast("LFT {}".format(self.players_dict[s]))
+                        elif "BYE" == data:#close signal
+                            print("received BYE signal")
+                            self.inputs.remove(s)
+                            print("removed socket :{}".format(s))
+                            if s in self.players_dict:
+                                self.brodcast("LFT {}".format(self.players_dict[s]))
+                                self.players_dict.pop(s)
+                            send_to(s, "BYE")
                             s.close()
 
                         else:
                             print(">>data received :")
                             print(data)
                     else:#socket closing
-                        s.close()
-                        print("removed socket :{}".format(s))
+                        print("unnormal socket close")
                         self.inputs.remove(s)
+                        print("removed socket :{}".format(s))
                         if s in self.players_dict:
                             self.players_dict.pop(s)
+                        send_to(s, "BYE")
+                        s.close()
         print("End receiving_accept thread")
 
     def add_to_lists(self, player_sock, raw_data):
@@ -156,18 +166,18 @@ class Server:
                 print("Signal STOP received, end sending thread")
                 self.close()
                 break
-
-            elif"::RAGNAROK" in usr_input:
-                print("endjdioawjdiwo")
-            self.brodcast(usr_input)
+            else:
+                self.brodcast(usr_input)
 
     def close(self):
         self.allow_receiving = False
         self.allow_connection = False
         self.allow_sending = False
-        self.allow_treat = False
+        for sock in self.inputs[1:]:
+            send_to(sock, "BYE")
         self.server.close()
-        print("Program end engaged, waiting for running threads to close")
+        print("Program end engaged")
+        os._exit(0)
 
 
 

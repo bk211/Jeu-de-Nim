@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
+import os
 import socket
 from multiprocessing import Queue
 import time
 import threading
 import queue
-
+from global_settings_and_functions import send_to
 
 sharedQueue = Queue()
 class Client:
@@ -44,7 +44,7 @@ class Client:
             thread_receiving.start()
 
     def send_msg(self, msg):
-        self.client.send(msg.encode())
+        send_to(self.client, msg)
 
     def sending(self):
         while self.allow_sending:
@@ -52,10 +52,9 @@ class Client:
             print(f"sending:{message}")
             if "::STOP" in message:
                 print("Signal STOP received, end sending thread")
-                self.send_msg("BYE")
                 self.close()
-                break
-            self.send_msg(message)
+            else:
+                self.send_msg(message)
 
 
 
@@ -67,10 +66,13 @@ class Client:
 
                 if data[0] == "LFT":
                     print("Signal LFT received")
-                if data[0] == "WHO":
+                elif data[0] == "WHO":
                     print("merci de vous identifier")
                 elif data[0] == "MSG":
                     print(">>received message from {} : {}".format(data[1], " ".join(data[2:])))
+
+                elif data[0] == "BYE":
+                    self.close()
 
                 elif data[0] == "ANN":
                     if data[1] == "PUT":
@@ -97,8 +99,6 @@ class Client:
                     if data[1] == "PLY":
                         print("Merci de jouer une carte")
 
-                elif "cond2" == data[0]:
-                    print("cond2 reached no exit")
                 else:
                     print(">>none of swtich meet, here is the raw data : "," ".join(data))
         print("End receiving thread")
@@ -106,8 +106,10 @@ class Client:
     def close(self):
         self.allow_sending = False
         self.allow_receiving = False
-        self.client.close()
-        print("Program end engaged, waiting for receiving thread to close")
+        send_to(self.client, "BYE")
+        print("Program end engaged")
+        os._exit(0)
+
 def main():
     #s = Client("pablo.rauzy.name",4567)
     _s = Client("bk","localhost",4567)

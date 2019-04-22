@@ -12,8 +12,9 @@ from multiprocessing import Queue
 class Croupier():
     """docstring for ."""
 
-    def __init__(self, players):
+    def __init__(self, players, server):
         self.players = players
+        self.server = server
         self.gdm = Game_data_manager()
         print("initialization complete, croupier rdy")
         for sock, name in self.players.items():
@@ -54,8 +55,8 @@ class Croupier():
             self.start_game_phase()
             if self.give_earning():
                 break
-            print("reached the end loop")
-        print("define close event")
+
+        self.close()
 
     def wait_for_STR_signal(self):
         while True:
@@ -115,7 +116,6 @@ class Croupier():
         while not self.gdm.check_loser():
             for player in range(NB_PLAYER):
                 if self.gdm.check_loser():
-                    print("break condition")
                     break
                 if self.gdm.get_player_statut(player):# 1 or 2
                     played_a_card = False
@@ -188,6 +188,13 @@ class Croupier():
 
     def push_to_rqueue(self, content):
         self.received_queue.put(content)
+
+    def close():
+        for sock in self.players:
+            send_to(sock, "BYE")
+        self.server.close()
+        print("Program end engaged")
+        os._exit(0)
 
 def main():
     pass
