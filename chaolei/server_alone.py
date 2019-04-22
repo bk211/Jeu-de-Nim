@@ -109,7 +109,7 @@ class Server:
                             print(">>data received :")
                             print(data)
                     else:#socket closing
-                        print("unnormal socket close")
+                        print("handle closed")
                         self.inputs.remove(s)
                         print("removed socket :{}".format(s))
                         if s in self.players_dict:

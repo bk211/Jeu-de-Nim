@@ -10,8 +10,7 @@ from global_settings_and_functions import send_to
 
 sharedQueue = Queue()
 class Client:
-    def __init__(self,clientName,hostName,port):
-        self.clientName = clientName
+    def __init__(self,hostName,port):
         self.hostName = hostName
         self.ipAddress = socket.gethostbyname(hostName)
         self.port = port
@@ -30,6 +29,21 @@ class Client:
         self.allow_receiving = True
         self.player_name =""
         self.plauyer_hand = []
+        self.client_name = None
+        self.client_name_accepted = False
+
+        self.start_receiving()
+
+    def get_name_statut(self):
+        return self.client_name_accepted
+
+    def send_client_name(self, name):
+        self.client_name = name
+        send_to(self.client, "IAM "+name )
+
+    def get_connect_statut(self):
+        return self.connect_statut
+
     def close(self):
         self.client.close()
 
@@ -88,7 +102,11 @@ class Client:
 
 
                 elif data[0] == "ARV":
-                    print(">>New player has joined {}".format(data[1]))#to do
+                    if data[1] == self.client_name:
+                        self.client_name_accepted = True
+                        print("Login success")
+                    else:
+                        print(">>New player has joined {}".format(data[1]))#to do
 
                 elif data[0] == "GET":
                     print(">>Voici votre main : {}".format(" ".join(data[1:])))
@@ -112,9 +130,8 @@ class Client:
 
 def main():
     #s = Client("pablo.rauzy.name",4567)
-    _s = Client("bk","localhost",4567)
+    _s = Client("localhost",4567)
     _s.start_sending()
-    _s.start_receiving()
 
 if __name__ == '__main__':
     main()
