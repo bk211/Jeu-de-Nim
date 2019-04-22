@@ -77,6 +77,12 @@ class Client:
                         print("Le joueur {} a mise {} ".format(data[2],data[3]))
                     if data[1] == "PLY":
                         print("Le joueur {} a joué {} ".format(data[2],data[3]))
+                    if data[1] == "WIN":
+                        print("Le joueur {} a gagné {} ".format(data[2],data[3]))
+                    if data[1] == "LOS":
+                        print("Le joueur {} a perdu {} ".format(data[2],data[3]))
+                    if data[1] == "VIC":
+                        print("Le joueur {} remporte la victoire ".format(data[2]))
 
 
                 elif data[0] == "ARV":

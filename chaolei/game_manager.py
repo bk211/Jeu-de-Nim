@@ -113,6 +113,28 @@ class Game_data_manager():
         self.remove_card_from_deck(choice)
         self.players_hands[player_number].append(choice)
 
+    def clear_table(self):
+        self.reset_pile()
+        self.players_hands = [[] for x in range(self.player_count)]
+        self.players_statut = [ 1 for x in range(self.player_count)]
+        self.players_chip_on_table =[ 0 for x in range(self.player_count)]
+        self.cards_bin = []
+        self.last_player = 0
+
+    def check_winner(self):
+        not_empty_count = 0
+        for wallet in self.players_wallets:
+            if wallet >0 :
+                not_empty_count+=1
+
+        if not_empty_count == 1:
+            return True
+        return False
+
+    def find_winner(self):
+        for player in range(self.player_count):
+            if self.players_wallets[player]:
+                return player
 
 
 def main():

@@ -52,8 +52,10 @@ class Croupier():
 
             self.start_bet_phase()
             self.start_game_phase()
-            self.give_earning()
+            if self.give_earning():
+                break
             print("reached the end loop")
+        print("define close event")
 
     def wait_for_STR_signal(self):
         while True:
@@ -126,6 +128,7 @@ class Croupier():
                             player_input = int(player_rep[1]) #reconverti sa mise en int
                             if self.gdm.remove_card_from_hand(player, player_input):#carte valide et joue
                                 self.brodcast("ANN PLY {} {}".format(self.get_player_name(player), player_input))
+
                                 self.brodcast("MSG Croupier la pile vaut maintenant {}".format(self.gdm.get_pile()))
                                 played_a_card =True
                             else:
@@ -138,16 +141,22 @@ class Croupier():
     def give_earning(self):
         loser =self.gdm.find_loser()
         for player in range(NB_PLAYER):
-            if self.get_player_statut(player):
+            if self.gdm.get_player_statut(player):
                 chip_on_table = self.gdm.get_player_chip(player)
-                if loser = player:
+                if loser == player:
                     self.brodcast("ANN LOS {} {}".format(self.get_player_name(player), chip_on_table))
-                    self.gdm.modifie_wallet(player_number, -chip_on_table)
+                    self.gdm.modifie_wallet(player, -chip_on_table)
                 else:
                     self.brodcast("ANN WIN {} {}".format(self.get_player_name(player), chip_on_table))
-                    self.gdm.modifie_wallet(player_number, chip_on_table)
+                    self.gdm.modifie_wallet(player, chip_on_table)
 
         self.gdm.clear_table()
+        if self.gdm.check_winner():
+            winner = self.gdm.find_winner()
+            self.brodcast("ANN VIC {}".format(self.get_player_name(winner)))
+            return True
+        return False
+
 
     def send_hand_to_player_sock(self, player_sock):
         player_hand = self.gdm.get_player_hand(self.conv_psock_to_pnumber(player_sock))
