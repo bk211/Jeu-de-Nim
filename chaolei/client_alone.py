@@ -8,9 +8,8 @@ import threading
 import queue
 from global_settings_and_functions import send_to
 
-sharedQueue = Queue()
 class Client:
-    def __init__(self,hostName,port):
+    def __init__(self,hostName,port, GUI_bool):
         self.hostName = hostName
         self.ipAddress = socket.gethostbyname(hostName)
         self.port = port
@@ -28,11 +27,19 @@ class Client:
         self.allow_sending = True
         self.allow_receiving = True
         self.player_name =""
-        self.plauyer_hand = []
+        self.player_hand = []
         self.client_name = None
         self.client_name_accepted = False
-
+        self.GUI_bool= GUI_bool
+        self.event_queue = Queue()
         self.start_receiving()
+        if not self.GUI_bool:
+            self.start_sending()
+
+    def get_event(self):
+        data = self.event_queue.get()
+        print("")
+        return data
 
     def get_name_statut(self):
         return self.client_name_accepted
@@ -104,6 +111,8 @@ class Client:
                 elif data[0] == "ARV":
                     if data[1] == self.client_name:
                         self.client_name_accepted = True
+                        if self.GUI_bool:
+                            self.event_queue.put("LOG")
                         print("Login success")
                     else:
                         print(">>New player has joined {}".format(data[1]))#to do
@@ -118,7 +127,7 @@ class Client:
                         print("Merci de jouer une carte")
 
                 else:
-                    print(">>none of swtich meet, here is the raw data : "," ".join(data))
+                    print(">>none of switch meet, here is the raw data : "," ".join(data))
         print("End receiving thread")
 
     def close(self):
@@ -130,8 +139,7 @@ class Client:
 
 def main():
     #s = Client("pablo.rauzy.name",4567)
-    _s = Client("localhost",4567)
-    _s.start_sending()
+    _s = Client("localhost",4567, False)
 
 if __name__ == '__main__':
     main()

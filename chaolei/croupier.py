@@ -115,8 +115,15 @@ class Croupier():
     def start_game_phase(self):
         while not self.gdm.check_loser():
             for player in range(NB_PLAYER):
+
+
                 if self.gdm.check_loser():
                     break
+                if self.gdm.check_empty_hand(player):
+                    self.gdm.deal_card_to_player(player)
+                    self.gdm.deal_card_to_player(player)
+                    self.send_hand_to_player_sock(self.conv_pnumber_to_psock(player_number))
+
                 if self.gdm.get_player_statut(player):# 1 or 2
                     played_a_card = False
                     while not played_a_card:

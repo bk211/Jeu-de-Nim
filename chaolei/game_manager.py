@@ -113,6 +113,9 @@ class Game_data_manager():
         self.remove_card_from_deck(choice)
         self.players_hands[player_number].append(choice)
 
+    def check_empty_hand(self, player_number):
+        return self.players_hands[player_number] == []
+
     def clear_table(self):
         self.reset_pile()
         self.players_hands = [[] for x in range(self.player_count)]

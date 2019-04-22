@@ -16,7 +16,6 @@ class LoginFrame(tk.Frame):#genere une frame pour le login screen
         self.servername = ""
         self.port = ""
 
-        #print("reached")
         self.label_username = tk.Label(self, text="Username")
         self.label_servername = tk.Label(self, text="Server name")
         self.label_port = tk.Label(self, text="Port")
@@ -54,13 +53,13 @@ class LoginFrame(tk.Frame):#genere une frame pour le login screen
         # print("Clicked")
         self.servername = self.entry_servername.get()
         self.port = self.entry_port.get()
-        #self.login_statut = True
+
         if user_login(self.servername, self.port):
             messagebox.showinfo("Connect attempt", "Succeded to connect,merci d'entrer votre pseudo")
             self.entry_username.config(state='normal')
             self.entry_servername.config(state= 'disabled')
             self.entry_port.config(state= 'disabled')
-            self.logbtn.config(command = self.log_in)
+            self.logbtn.config(command = self.log_in, text="log-in")
         else:
             messagebox.showinfo("Connect attempt", "Failed to connect")
     def log_in(self):
@@ -70,9 +69,8 @@ class LoginFrame(tk.Frame):#genere une frame pour le login screen
         time.sleep(1)
         if my_client.get_name_statut():
             messagebox.showinfo("Log-in attempt", "Succeded to log-in")
+            self.login_statut = True
             self.pack_forget()
-            Global Events_queue
-            Events_queue.put("LOG")
         else:
             messagebox.showinfo("Log-in attempt", "Failed to log-in, please re-try with another name")
 
@@ -80,7 +78,7 @@ class LoginFrame(tk.Frame):#genere une frame pour le login screen
 def user_login(servername, port):
     try:
         global my_client
-        my_client = Client(servername, int(port))
+        my_client = Client(servername, int(port), True)
     except:
         return False
     print(my_client.get_connect_statut())
@@ -95,24 +93,62 @@ class GUI:
         self.window.title("Chat client")
         self.window.geometry("800x600")
         #login step
-        loginframe = LoginFrame(self.window)
-        self.start_treat
+        self.loginframe = LoginFrame(self.window)
+
+        self.messages_frame = tk.Frame(self.window)
+        self.user_msg = tk.StringVar()
+        self.scrollbar = tk.Scrollbar(self.messages_frame)
+        self.messages_listbox = tk.Listbox(self.window,height=15, width = 50 ,bg="white",yscrollcommand=self.scrollbar.set)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.messages_listbox.pack(fill = tk.X)
+        self.messages_listbox.pack()
+        self.messages_frame.pack()
+
+        self.entry_field = tk.Entry(self.window, textvariable=self.user_msg)
+        self.entry_field.bind("<Return>", self.send)
+        self.entry_field.pack()
+        self.bottom_button = tk.Button(self.window, text="Send message", command=self.send,state='disabled')
+        self.bottom_button.pack()
+
+        self.label_username_text = tk.StringVar()
+        self.label_username_text.set("Username: ")
+        self.label_username = tk.Label(self.window, textvariable = self.label_username_text)
+        self.label_username.pack()
+
+        self.label_wallet_text = tk.StringVar()
+        self.label_wallet_text.set("Bank :")
+        self.label_wallet = tk.Label(self.window, textvariable = self.label_wallet_text)
+        self.label_wallet.pack()
+
+
+        self.label_cards_text = tk.StringVar()
+        self.label_cards_text.set("Cards :")
+        self.label_cards =tk.Label(self.window, textvariable=self.label_cards_text)
+        self.label_cards.pack()
+        self.start_treat()
         self.window.mainloop()
+
+    def send(self):
+        pass
 
     def start_treat(self):
         thread_treat = threading.Thread(target =self.treating)
         thread_treat.start()
 
+    def reset_bottom_button(self):
+        self.bottom_button.config(state='normal', text= "send message")
+
     def treating(self):
         while True:
-            Global Events_queue
-            data = Events_queue.get()
-            if data == "LOG":
-                print("LOG DONE , creating game screen")
-
+            if self.loginframe.get_statut():
+                global my_client
+                data = my_client.get_event()
+                print(data)
+                if data == "LOG":
+                    self.label_username_text.set("Username :",+self.loginframe.get_username())
+                    self.reset_bottom_button()
 
 my_client = None
-Events_queue = Queue()
 
 if __name__ == '__main__':
     Application = GUI()
