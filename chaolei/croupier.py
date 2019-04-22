@@ -52,6 +52,7 @@ class Croupier():
 
             self.start_bet_phase()
             self.start_game_phase()
+            self.give_earning()
             print("reached the end loop")
 
     def wait_for_STR_signal(self):
@@ -134,8 +135,18 @@ class Croupier():
                     self.current_player_turn = (self.current_player_turn +1)% NB_PLAYER
 
 
-
-        print("loser is",self.get_player_name(self.gdm.find_loser()))
+    def give_earning(self):
+        loser =self.gdm.find_loser()
+        for player in range(NB_PLAYER):
+            if self.get_player_statut(player):
+                chip_on_table = self.gdm.get_player_chip(player)
+                if loser = player:
+                    self.brodcast("ANN LOS {} {}".format(self.get_player_name(player), chip_on_table))
+                    self.gdm.modifie_wallet(player_number, -chip_on_table)
+                else:
+                    self.brodcast("ANN WIN {} {}".format(self.get_player_name(player), chip_on_table))
+                    self.gdm.modifie_wallet(player_number, chip_on_table)
+                    
 
     def send_hand_to_player_sock(self, player_sock):
         player_hand = self.gdm.get_player_hand(self.conv_psock_to_pnumber(player_sock))

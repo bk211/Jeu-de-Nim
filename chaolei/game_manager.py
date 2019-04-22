@@ -92,11 +92,9 @@ class Game_data_manager():
         return self.players_wallets[player_number]
 
     def modifie_wallet(self, player_number, amount):
-        if self.players_wallets[number] >= amount:
-            self.players_wallets[number] += amount
-            return True
-        return False
-
+        self.players_wallets[player_number] += amount
+        if self.players_wallets[player_number] <0:
+            self.players_wallets[player_number] = 0
     def reshuffle(self):
         self.cards_deck= [ x for x in range(4)]*6 + [-1, -1]
 
