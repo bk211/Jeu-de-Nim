@@ -70,7 +70,6 @@ class LoginFrame(tk.Frame):#genere une frame pour le login screen
         if my_client.get_name_statut():
             messagebox.showinfo("Log-in attempt", "Succeded to log-in")
             self.login_statut = True
-
             self.pack_forget()
         else:
             messagebox.showinfo("Log-in attempt", "Failed to log-in, please re-try with another name")
@@ -105,9 +104,11 @@ class GUI:
         self.messages_frame.pack()
 
         self.entry_field = tk.Entry(self.window, textvariable=self.user_msg)
-        self.entry_field.bind("<Return>", self.send)
         self.entry_field.pack()
-        self.bottom_button = tk.Button(self.window, text="Send message", command=self.send_message,state='disabled')
+        self.bottom_button = tk.Button(self.window, text="Send message", command=self.send_message)
+        self.bottom_button.pack()
+        self.start_game_button = tk.Button(self.window, text="Start Game", command=self.start_game)
+        self.start_game_button.pack()
         self.bottom_button.pack()
 
         self.label_username_text = tk.StringVar()
@@ -125,22 +126,31 @@ class GUI:
         self.label_cards_text.set("Cards :")
         self.label_cards =tk.Label(self.window, textvariable=self.label_cards_text)
         self.label_cards.pack()
+
+        self.current_request = "None"
         self.start_treat()
         self.window.mainloop()
 
-    def send_message(self):
-        global my_client
-        raw =self.entry_field.get()
-        data = "MSG {} {}".format(self.loginframe.get_username(),raw)
-        #print("SENDING:",data)
-        my_client.send_msg(data)
+    def start_game(self):
+        try:
+            my_client.send_msg("STR")
+        except:
+            return
 
-    def send(self, ARG):
-        global my_client
+    def send_message(self):
         raw =self.entry_field.get()
         data = "MSG {} {}".format(self.loginframe.get_username(),raw)
-        #print("SENDING:",data)
+        try:
+            my_client.send_msg(data)
+            self.entry_field.delete(0,"end")
+        except:
+            return
+
+    def reply_to_req(self):
+        raw =self.entry_field.get()
+        data = "{} {}".format(self.current_request,raw)
         my_client.send_msg(data)
+        self.reset_bottom_button()
 
 
     def start_treat(self):
@@ -148,16 +158,19 @@ class GUI:
         thread_treat.start()
 
     def reset_bottom_button(self):
+        self.entry_field.delete(0,"end")
         self.bottom_button.config(state='normal', text= "send message",command = self.send_message)
 
     def push_to_mbox(self, content):
         self.messages_listbox.insert(tk.END, content)
 
+    def set_req(self, req):
+        self.current_request = req
+        self.bottom_button.config(text=self.current_request,command = self.reply_to_req)
 
     def treating(self):
         while True:
             if self.loginframe.get_statut():
-                self.reset_bottom_button()
                 global my_client
                 data = my_client.get_event()
                 print("from GUI::",data)
@@ -181,23 +194,25 @@ class GUI:
                     if data[1] == "VIC":
                         self.push_to_mbox(">>Le joueur {} remporte la victoire ".format(data[2]))
 
-                    elif data[0] == "ARV":
-                        self.push_to_mbox(">>New player has joined {}".format(data[1]))
+                elif data[0] == "ARV":
+                    self.push_to_mbox(">>New player has joined {}".format(data[1]))
 
-                    elif data[0] == "GET":
-                        self.push_to_mbox(">>Distribution de cartes en cours")
-                        self.label_cards_text.set("Cards :".format(data[1:]))
+                elif data[0] == "GET":
+                    self.push_to_mbox(">>Distribution de cartes en cours")
+                    self.label_cards_text.set("Cards : {}".format(data[1:]))
 
-"""
                 elif data[0] == "REQ":
                     if data[1] == "PUT":
-                        print("Entrez votre mise, vous disposez de {} jetons".format(data[2]))
+                        self.push_to_mbox("{} : {}".format("Croupier","Entrez votre mise, vous disposez de {} jetons".format(data[2])))
+                        self.label_wallet_text.set("Bank : {}".format(data[2]))
+                        self.set_req("PUT")
                     if data[1] == "PLY":
-                        print("Merci de jouer une carte")
+                        self.push_to_mbox("{} : {}".format("Croupier","Merci de jouer une carte"))
+                        self.set_req("PLY")
 
                 else:
                     print(">>none of switch meet, here is the raw data : "," ".join(data))
-"""
+
 my_client = None
 
 if __name__ == '__main__':
