@@ -81,54 +81,59 @@ class Client:
 
     def receiving(self):
         while self.allow_receiving:
-            data = self.client.recv(1024)
-            if data:
-                data = data.decode().split()
+            try:
+                data = self.client.recv(1024)
+                if data:
+                    data = data.decode().split()
+                    if data[0] == "ARV":
+                        if data[1] == self.client_name:
+                            self.client_name_accepted = True
+                            print("Login success")
 
-                if data[0] == "LFT":
-                    print("Signal LFT received")
-                elif data[0] == "WHO":
-                    print("merci de vous identifier")
-                elif data[0] == "MSG":
-                    print(">>received message from {} : {}".format(data[1], " ".join(data[2:])))
-
-                elif data[0] == "BYE":
-                    self.close()
-
-                elif data[0] == "ANN":
-                    if data[1] == "PUT":
-                        print("Le joueur {} a mise {} ".format(data[2],data[3]))
-                    if data[1] == "PLY":
-                        print("Le joueur {} a joué {} ".format(data[2],data[3]))
-                    if data[1] == "WIN":
-                        print("Le joueur {} a gagné {} ".format(data[2],data[3]))
-                    if data[1] == "LOS":
-                        print("Le joueur {} a perdu {} ".format(data[2],data[3]))
-                    if data[1] == "VIC":
-                        print("Le joueur {} remporte la victoire ".format(data[2]))
-
-
-                elif data[0] == "ARV":
-                    if data[1] == self.client_name:
-                        self.client_name_accepted = True
-                        if self.GUI_bool:
-                            self.event_queue.put("LOG")
-                        print("Login success")
+                    if self.GUI_bool:
+                        self.event_queue.put(data)
                     else:
-                        print(">>New player has joined {}".format(data[1]))#to do
+                        self.print_for_user(data)
+            except:
+                continue
 
-                elif data[0] == "GET":
-                    print(">>Voici votre main : {}".format(" ".join(data[1:])))
-                    self.player_hand = map(int, data[1:])
-                elif data[0] == "REQ":
-                    if data[1] == "PUT":
-                        print("Entrez votre mise, vous disposez de {} jetons".format(data[2]))
-                    if data[1] == "PLY":
-                        print("Merci de jouer une carte")
+    def print_for_user(self, data):
+        if data[0] == "LFT":
+            print("Player {} has left".format(data[1]))
+        elif data[0] == "WHO":
+            print("merci de vous identifier")
+        elif data[0] == "MSG":
+            print(">>received message from {} : {}".format(data[1], " ".join(data[2:])))
 
-                else:
-                    print(">>none of switch meet, here is the raw data : "," ".join(data))
-        print("End receiving thread")
+        elif data[0] == "BYE":
+            self.close()
+
+        elif data[0] == "ANN":
+            if data[1] == "PUT":
+                print("Le joueur {} a mise {} ".format(data[2],data[3]))
+            if data[1] == "PLY":
+                print("Le joueur {} a joué {} ".format(data[2],data[3]))
+            if data[1] == "WIN":
+                print("Le joueur {} a gagné {} ".format(data[2],data[3]))
+            if data[1] == "LOS":
+                print("Le joueur {} a perdu {} ".format(data[2],data[3]))
+            if data[1] == "VIC":
+                print("Le joueur {} remporte la victoire ".format(data[2]))
+
+        elif data[0] == "ARV":
+            print(">>New player has joined {}".format(data[1]))
+        elif data[0] == "GET":
+            print(">>Voici votre main : {}".format(" ".join(data[1:])))
+            self.player_hand = map(int, data[1:])
+        elif data[0] == "REQ":
+            if data[1] == "PUT":
+                print("Entrez votre mise, vous disposez de {} jetons".format(data[2]))
+            if data[1] == "PLY":
+                print("Merci de jouer une carte")
+
+        else:
+            print(">>none of switch meet, here is the raw data : "," ".join(data))
+
 
     def close(self):
         self.allow_sending = False

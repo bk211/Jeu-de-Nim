@@ -50,7 +50,7 @@ class LoginFrame(tk.Frame):#genere une frame pour le login screen
 
 
     def connect(self):
-        # print("Clicked")
+
         self.servername = self.entry_servername.get()
         self.port = self.entry_port.get()
 
@@ -70,6 +70,7 @@ class LoginFrame(tk.Frame):#genere une frame pour le login screen
         if my_client.get_name_statut():
             messagebox.showinfo("Log-in attempt", "Succeded to log-in")
             self.login_statut = True
+
             self.pack_forget()
         else:
             messagebox.showinfo("Log-in attempt", "Failed to log-in, please re-try with another name")
@@ -81,7 +82,6 @@ def user_login(servername, port):
         my_client = Client(servername, int(port), True)
     except:
         return False
-    print(my_client.get_connect_statut())
     if my_client.get_connect_statut():
         return True
     return False
@@ -97,9 +97,9 @@ class GUI:
 
         self.messages_frame = tk.Frame(self.window)
         self.user_msg = tk.StringVar()
-        self.scrollbar = tk.Scrollbar(self.messages_frame)
-        self.messages_listbox = tk.Listbox(self.window,height=15, width = 50 ,bg="white",yscrollcommand=self.scrollbar.set)
-        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        #self.scrollbar = tk.Scrollbar(self.messages_frame)
+        self.messages_listbox = tk.Listbox(self.window,height=15, width = 50 ,bg="white")#,yscrollcommand=self.scrollbar.set)
+        #self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.messages_listbox.pack(fill = tk.X)
         self.messages_listbox.pack()
         self.messages_frame.pack()
@@ -107,7 +107,7 @@ class GUI:
         self.entry_field = tk.Entry(self.window, textvariable=self.user_msg)
         self.entry_field.bind("<Return>", self.send)
         self.entry_field.pack()
-        self.bottom_button = tk.Button(self.window, text="Send message", command=self.send,state='disabled')
+        self.bottom_button = tk.Button(self.window, text="Send message", command=self.send_message,state='disabled')
         self.bottom_button.pack()
 
         self.label_username_text = tk.StringVar()
@@ -128,26 +128,76 @@ class GUI:
         self.start_treat()
         self.window.mainloop()
 
-    def send(self):
-        pass
+    def send_message(self):
+        global my_client
+        raw =self.entry_field.get()
+        data = "MSG {} {}".format(self.loginframe.get_username(),raw)
+        #print("SENDING:",data)
+        my_client.send_msg(data)
+
+    def send(self, ARG):
+        global my_client
+        raw =self.entry_field.get()
+        data = "MSG {} {}".format(self.loginframe.get_username(),raw)
+        #print("SENDING:",data)
+        my_client.send_msg(data)
+
 
     def start_treat(self):
         thread_treat = threading.Thread(target =self.treating)
         thread_treat.start()
 
     def reset_bottom_button(self):
-        self.bottom_button.config(state='normal', text= "send message")
+        self.bottom_button.config(state='normal', text= "send message",command = self.send_message)
+
+    def push_to_mbox(self, content):
+        self.messages_listbox.insert(tk.END, content)
+
 
     def treating(self):
         while True:
             if self.loginframe.get_statut():
+                self.reset_bottom_button()
                 global my_client
                 data = my_client.get_event()
-                print(data)
-                if data == "LOG":
-                    self.label_username_text.set("Username :",+self.loginframe.get_username())
-                    self.reset_bottom_button()
+                print("from GUI::",data)
+                if data[0] == "LFT":
+                    self.push_to_mbox("Player {} has left".format(data[1]))
+                elif data[0] == "WHO":
+                    self.label_username_text.set("Username :"+self.loginframe.get_username())
+                elif data[0] == "MSG":
+                    self.push_to_mbox("{} : {}".format(data[1], " ".join(data[2:])))
+                elif data[0] == "BYE":
+                    self.push_to_mbox("{} : {}".format("SYS","Deconnection avec le serveur"))
+                elif data[0] == "ANN":
+                    if data[1] == "PUT":
+                        self.push_to_mbox(">>Le joueur {} a mise {} ".format(data[2],data[3]))
+                    if data[1] == "PLY":
+                        self.push_to_mbox(">>Le joueur {} a joué {} ".format(data[2],data[3]))
+                    if data[1] == "WIN":
+                        self.push_to_mbox(">>Le joueur {} a gagné {} ".format(data[2],data[3]))
+                    if data[1] == "LOS":
+                        self.push_to_mbox(">>Le joueur {} a perdu {} ".format(data[2],data[3]))
+                    if data[1] == "VIC":
+                        self.push_to_mbox(">>Le joueur {} remporte la victoire ".format(data[2]))
 
+                    elif data[0] == "ARV":
+                        self.push_to_mbox(">>New player has joined {}".format(data[1]))
+
+                    elif data[0] == "GET":
+                        self.push_to_mbox(">>Distribution de cartes en cours")
+                        self.label_cards_text.set("Cards :".format(data[1:]))
+
+"""
+                elif data[0] == "REQ":
+                    if data[1] == "PUT":
+                        print("Entrez votre mise, vous disposez de {} jetons".format(data[2]))
+                    if data[1] == "PLY":
+                        print("Merci de jouer une carte")
+
+                else:
+                    print(">>none of switch meet, here is the raw data : "," ".join(data))
+"""
 my_client = None
 
 if __name__ == '__main__':
