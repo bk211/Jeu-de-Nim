@@ -75,17 +75,19 @@ class Croupier():
             for player in range(NB_PLAYER):#itere sur toutes les joueurs
                 while not self.gdm.check_player_bet_done(player, self.current_entry_fee):#Tant que ce joueur n'a pas fini son mise
                     player_wallet = self.gdm.get_player_wallet(player) #check son portefeuille
-                    self.ask_input_to_player_sock(self.conv_pnumber_to_psock(player),"PUT", player_wallet)#demande de miser
-
-
+                    self.brodcast("MSG Croupier c'est au joueur {} de miser".format(self.get_player_name(player)))
+                    self.ask_input_to_player_sock(self.conv_pnumber_to_psock(player), "PUT", player_wallet)
                     player_rep = self.received_queue.get()#recupere sa reponse
                     player_rep = player_rep.split()
                     if player_rep[0] == "PUT":#si le joueur mise
-                        player_input = int(player_rep[1]) #reconverti sa mise en int
-
+                        try:
+                            player_input = int(player_rep[1]) #reconverti sa mise en int
+                        except:
+                            send_to(self.conv_pnumber_to_psock(player), "MSG Croupier Merci de respecter les format")
+                            continue
                         if player_wallet <=  0 or player_input == 0:#s'il n'a pas de jeton
                             self.gdm.set_player_statut(player, 0)# dehors
-                            self.brodcast("ANN PUT {} {}".format(self.get_player_name(player), player_wallet))
+                            self.brodcast("ANN PUT {} {}".format(self.get_player_name(player), 0))
 
                         elif player_wallet < player_input:
                             send_to(self.conv_pnumber_to_psock(player), "MSG Croupier Vous n'avez pas assez de jetons")
@@ -111,6 +113,7 @@ class Croupier():
 
                     else:
                         send_to(self.conv_pnumber_to_psock(player), "MSG Croupier Merci de respecter les format")
+
                 self.current_player_turn = (self.current_player_turn +1)% NB_PLAYER
 
     def start_game_phase(self):
@@ -128,12 +131,16 @@ class Croupier():
                 if self.gdm.get_player_statut(player):# 1 or 2
                     played_a_card = False
                     while not played_a_card:
-
+                        self.brodcast("MSG Croupier c'est au joueur {} de miser".format(self.get_player_name(player)))
                         self.ask_input_to_player_sock(self.conv_pnumber_to_psock(player), "PLY", " ")#demande au joueur de jouer une carte
                         player_rep = self.received_queue.get()#recupere sa reponse
                         player_rep = player_rep.split()
                         if player_rep[0] == "PLY":
-                            player_input = int(player_rep[1]) #reconverti sa mise en int
+                            try:
+                                player_input = int(player_rep[1]) #reconverti sa mise en int
+                            except:
+                                send_to(self.conv_pnumber_to_psock(player), "MSG Croupier Merci de respecter les format")
+                                continue
                             if self.gdm.remove_card_from_hand(player, player_input):#carte valide et joue
                                 self.brodcast("ANN PLY {} {}".format(self.get_player_name(player), player_input))
 
@@ -146,7 +153,7 @@ class Croupier():
                     self.current_player_turn = (self.current_player_turn +1)% NB_PLAYER
 
 
-    def give_earning(self, entry_fee):
+    def give_earning(self):
         loser =self.gdm.find_loser()
         for player in range(NB_PLAYER):
             if self.gdm.get_player_statut(player):
@@ -158,13 +165,13 @@ class Croupier():
                         lose = self.current_entry_fee
 
                     self.brodcast("ANN LOS {} {}".format(self.get_player_name(player), lose))
-                    self.gdm.modifie_wallet(player, lose))
+                    self.gdm.modifie_wallet(player, lose)
                 else:
                     if chip_on_table > self.current_entry_fee:
                         win = chip_on_table
                     else:
                         win = self.current_entry_fee
-                        
+
                     self.brodcast("ANN WIN {} {}".format(self.get_player_name(player), win))
                     self.gdm.modifie_wallet(player, win)
 
