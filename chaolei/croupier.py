@@ -146,7 +146,8 @@ class Croupier():
                 else:
                     self.brodcast("ANN WIN {} {}".format(self.get_player_name(player), chip_on_table))
                     self.gdm.modifie_wallet(player_number, chip_on_table)
-                    
+
+        self.gdm.clear_table()
 
     def send_hand_to_player_sock(self, player_sock):
         player_hand = self.gdm.get_player_hand(self.conv_psock_to_pnumber(player_sock))
