@@ -23,7 +23,6 @@ class Croupier():
         send_to(self.conv_pnumber_to_psock(0), "MSG Croupier En attente de votre signal de lancement")
 
         self.received_queue =Queue()
-        self.current_game_phase = 0
         self.current_player_turn = 0
         self.players_statut = [1 for x in range(NB_PLAYER)]
         self.start_treating()
@@ -44,15 +43,7 @@ class Croupier():
         self.thread_treating.start()
 
     def treating(self):
-        while self.current_game_phase == 0:
-            #if not self.received_queue.empty():
-            data = self.received_queue.get()
-            print(data)
-            if data == "STR":
-                self.current_game_phase = 1
-            else:
-                send_to(self.conv_pnumber_to_psock(0), "MSG Croupier En attente de votre signal de lancement")
-
+        self.wait_for_STR_signal()
 
         self.gdm.deal_cards_to_all()
         self.send_hand_to_all()
@@ -61,6 +52,17 @@ class Croupier():
         self.start_bet_phase()
 
         print("reached the end")
+    def wait_for_STR_signal(self):
+        while True:
+            #if not self.received_queue.empty():print(data)
+
+            data = self.received_queue.get()
+            if data == "STR":
+                return True
+            else:
+                send_to(self.conv_pnumber_to_psock(0), "MSG Croupier En attente de votre signal de lancement")
+
+
 
     def start_bet_phase(self):
         requiered_entry_fee = 0
